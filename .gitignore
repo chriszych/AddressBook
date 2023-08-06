@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# My project ignored files
+*.txt
+/bin
+/obj
+*.cbp
+*.depend
+*.layout
