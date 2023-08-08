@@ -16,7 +16,7 @@ struct Person {
     string address;
 };
 
-enum dataTypeToSearch {
+enum DataType {
     firstname,
     lastname,
     email,
@@ -29,7 +29,7 @@ const string ADDRESSBOOK_FILE = "addressBook.txt";
 
 void displayPausePrompt();
 void displayRecordByTableIndex(Person persons);
-boolean searchTableByString(string stringToSearch, dataTypeToSearch personsDataType, vector <Person>& persons);
+bool searchTableByString(string stringToSearch, DataType personsDataType, vector <Person>& persons);
 string getLineString();
 char getLineChar();
 bool isNumber(string s);
@@ -38,9 +38,9 @@ char displayMainMenu();
 void addNewPerson(vector <Person>& persons);
 void displayAllPersons(vector <Person>& persons);
 void loadDataFromTextFile(vector <Person>& persons);
-boolean displayYesNoChoice();
+bool displayYesNoChoice();
 string removeSpacesAndDashesFromString(string stringToClear);
-void rewriteDataFileWithoutGivenLine(int personId, vector <Person>& persons);
+void rewriteDataFile(const vector <Person>& persons);
 void deletePerson(vector <Person>& persons);
 char displayEditSubMenu();
 void modifyPerson(vector <Person>& persons);
@@ -64,7 +64,7 @@ int main() {
             cout << "Input firstname: ";
             stringToSearch = getLineString();
 
-            if (!searchTableByString(stringToSearch, dataTypeToSearch(firstname), persons)) {
+            if (!searchTableByString(stringToSearch, DataType(firstname), persons)) {
                 cout << "No such person in your AddressBook!" << endl;
             }
             displayPausePrompt();
@@ -73,7 +73,7 @@ int main() {
             cout << "Input lastname: ";
             stringToSearch = getLineString();
 
-            if (!searchTableByString(stringToSearch, dataTypeToSearch(lastname), persons)) {
+            if (!searchTableByString(stringToSearch, DataType(lastname), persons)) {
                 cout << "No such person in your AddressBook!" << endl;
             }
             displayPausePrompt();
@@ -108,32 +108,32 @@ void displayRecordByTableIndex(Person persons) {
     cout << "(" << persons.id << "). " << persons.firstname << " " << persons.lastname << ", " << persons.email << ", " << persons.phone << ", " << persons.address <<  endl;
 }
 
-boolean searchTableByString(string stringToSearch, dataTypeToSearch personsDataType, vector <Person>& persons) {
-    boolean searchResult = false;
+bool searchTableByString(string stringToSearch, DataType personsDataType, vector <Person>& persons) {
+    bool searchResult = false;
 
     for(size_t i = 0; i < persons.size(); ++i) {
-        if (personsDataType == dataTypeToSearch(firstname)) {
+        if (personsDataType == DataType(firstname)) {
             if (persons[i].firstname.find(stringToSearch) != string::npos) {
                 displayRecordByTableIndex(persons[i]);
                 searchResult = true;
             }
-        } else if (personsDataType == dataTypeToSearch(lastname)) {
+        } else if (personsDataType == DataType(lastname)) {
             if (persons[i].lastname.find(stringToSearch) != string::npos) {
                 displayRecordByTableIndex(persons[i]);
                 searchResult = true;
             }
-        } else if (personsDataType == dataTypeToSearch(email)) {
+        } else if (personsDataType == DataType(email)) {
             if (persons[i].email == stringToSearch) {
                 displayRecordByTableIndex(persons[i]);
                 searchResult = true;
             }
-        } else if (personsDataType == dataTypeToSearch(phone)) {
+        } else if (personsDataType == DataType(phone)) {
             if (persons[i].phone == stringToSearch) {
                 displayRecordByTableIndex(persons[i]);
                 searchResult = true;
             }
 
-        } else if (personsDataType == dataTypeToSearch(fullname)) {
+        } else if (personsDataType == DataType(fullname)) {
             string fname = "";
             fname.append(persons[i].firstname);
             fname.append(" ");
@@ -161,7 +161,7 @@ string getLineString() {
 bool isNumber(string s) {
     if(s.size()==0) return false;
     for(size_t i=0; i<s.size(); i++) {
-        if((s[i]>='0' && s[i]<='9')==false) {
+        if(!(s[i]>='0' && s[i]<='9')) {
             return false;
         }
     }
@@ -228,11 +228,7 @@ void addNewPerson(vector <Person>& persons) {
     Person newPersonToAdd;
     string fname = "";
 
-    if(persons.size() == 0) {
-        newPersonToAdd.id = 1;
-    } else {
-        newPersonToAdd.id = persons.back().id + 1;
-    }
+    newPersonToAdd.id = !persons.size() ? 1 : persons.back().id + 1;
 
     cout << "Input firstname: ";
     newPersonToAdd.firstname = getLineString();
@@ -243,7 +239,7 @@ void addNewPerson(vector <Person>& persons) {
         fname.append(" ");
         fname.append(newPersonToAdd.lastname);
 
-        if(searchTableByString(fname, dataTypeToSearch(fullname), persons)) {
+        if(searchTableByString(fname, DataType(fullname), persons)) {
             cout << "The specified firstname & lastname is already in use for an existing user(s)!" << endl;
             cout << "Do you wish to continue (Y/N)?";
             if(!displayYesNoChoice()) {
@@ -255,7 +251,7 @@ void addNewPerson(vector <Person>& persons) {
     cout << "Input e-mail: ";
     newPersonToAdd.email = getLineString();
     if (persons.size() > 0) {
-        if(searchTableByString(newPersonToAdd.email, dataTypeToSearch(email), persons)) {
+        if(searchTableByString(newPersonToAdd.email, DataType(email), persons)) {
             cout << "The specified email is already in use for an existing user(s)!" << endl;
             cout << "Do you wish to continue (Y/N)?";
 
@@ -268,7 +264,7 @@ void addNewPerson(vector <Person>& persons) {
     cout << "Input phone number: ";
     newPersonToAdd.phone = removeSpacesAndDashesFromString(getLineString());
     if (persons.size() > 0) {
-        if(searchTableByString(newPersonToAdd.phone, dataTypeToSearch(phone), persons)) {
+        if(searchTableByString(newPersonToAdd.phone, DataType(phone), persons)) {
             cout << "The specified phone number is already in use for an existing user(s)!" << endl;
             cout << "Do you wish to continue (Y/N)?";
             if(!displayYesNoChoice()) {
@@ -284,7 +280,7 @@ void addNewPerson(vector <Person>& persons) {
 
     dataFile.open(ADDRESSBOOK_FILE, ios::out | ios::app);
 
-    if (dataFile.good() == false) {
+    if (!dataFile.good()) {
         cout << "Error opening file: addressBook.txt!" << endl;
         displayPausePrompt();
     }
@@ -321,7 +317,7 @@ void loadDataFromTextFile(vector <Person>& persons) {
 
     dataFile.open(ADDRESSBOOK_FILE, ios::in);
 
-    if (dataFile.good() == false) {
+    if (!dataFile.good()) {
         cout << "File addressBook.txt not found, creating new file!" << endl;
         displayPausePrompt();
     }
@@ -356,9 +352,9 @@ void loadDataFromTextFile(vector <Person>& persons) {
     dataFile.close();
 }
 
-boolean displayYesNoChoice() {
+bool displayYesNoChoice() {
     char yesNoChar;
-    boolean yesNoAnswer;
+    bool yesNoAnswer;
 
     while(true) {
         yesNoChar = getLineChar();
@@ -384,25 +380,22 @@ string removeSpacesAndDashesFromString(string stringToClear) {
     return stringToClear;
 }
 
-void rewriteDataFileWithoutGivenLine(int personId, vector <Person>& persons) {
-    ofstream dataFile;
+void rewriteDataFile(const vector <Person>& persons) {
+    ofstream addressBookFile(ADDRESSBOOK_FILE, ios::out | ios::trunc);
 
-    dataFile.open(ADDRESSBOOK_FILE, ios::out | ios::trunc);
-    if (dataFile.good() == false) {
+    if (!addressBookFile.good()) {
         cout << "Error opening file: addressBook.txt!" << endl;
         displayPausePrompt();
     }
     for (size_t i = 0; i < persons.size(); ++i) {
-        if (persons[i].id != personId) {
-            dataFile << persons[i].id << "|" << persons[i].firstname << "|" << persons[i].lastname << "|" << persons[i].email << "|" << persons[i].phone << "|" << persons[i].address << "|" << endl;
+            addressBookFile << persons[i].id << "|" << persons[i].firstname << "|" << persons[i].lastname << "|" << persons[i].email << "|" << persons[i].phone << "|" << persons[i].address << "|" << endl;
         }
-    }
-    dataFile.close();
+    addressBookFile.close();
 }
 
 void deletePerson(vector <Person>& persons) {
     int personId;
-    boolean personFound = false;
+    bool personFound = false;
 
     do {
         cout << "Input proper person ID to delete : ";
@@ -415,13 +408,13 @@ void deletePerson(vector <Person>& persons) {
             cout << "You are going to delete: " <<  persons[i].firstname << " " << persons[i].lastname << ", Do you wish to continue (Y/N) ? ";
             if (displayYesNoChoice()) {
                 persons.erase (persons.begin() + i);
-                rewriteDataFileWithoutGivenLine(personId, persons);
+                rewriteDataFile(persons);
                 cout << "Person with ID : " << personId << " successfully deleted." << endl;
                 displayPausePrompt();
             }
         }
     }
-    if (personFound == false) {
+    if (!personFound) {
         cout << "Person with ID: " << personId << " not found in AddressBook database!" << endl;
         displayPausePrompt();
     }
@@ -447,7 +440,7 @@ char displayEditSubMenu() {
     return menuSelection;
 }
 
-void modifyGivenPersonData(int personId, dataTypeToSearch personsDataType, vector <Person>& persons) {
+void modifyGivenPersonData(int personId, DataType personsDataType, vector <Person>& persons) {
     string tempPhone;
     string tempEmail;
     string tempFirstname;
@@ -457,7 +450,7 @@ void modifyGivenPersonData(int personId, dataTypeToSearch personsDataType, vecto
     for(size_t i = 0; i < persons.size(); ++i) {
         if (persons[i].id == personId) {
             cout << "You are modifing: " <<  persons[i].firstname << " " << persons[i].lastname << " data." << endl;
-            if (personsDataType == dataTypeToSearch(firstname)) {
+            if (personsDataType == DataType(firstname)) {
                 cout << "Current firstname: " << persons[i].firstname << endl;
                 cout << "Type new firstname: ";
 
@@ -466,7 +459,7 @@ void modifyGivenPersonData(int personId, dataTypeToSearch personsDataType, vecto
                 tempFullname.append(" ");
                 tempFullname.append(persons[i].lastname);
 
-                if(searchTableByString(tempFullname, dataTypeToSearch(fullname), persons)) {
+                if(searchTableByString(tempFullname, DataType(fullname), persons)) {
                     cout << "The specified firstname & lastname is already in use for an existing user(s)!" << endl;
                     cout << "Do you wish to continue (Y/N)?";
                     if(!displayYesNoChoice()) {
@@ -476,7 +469,7 @@ void modifyGivenPersonData(int personId, dataTypeToSearch personsDataType, vecto
                 persons[i].firstname = tempFirstname;
                 cout << "Firstname sucessfully changed to: " << persons[i].firstname << endl;
                 displayPausePrompt();
-            } else if (personsDataType == dataTypeToSearch(lastname)) {
+            } else if (personsDataType == DataType(lastname)) {
                 cout << "Current lastname: " << persons[i].lastname << endl;
                 cout << "Type new lastname: ";
 
@@ -485,7 +478,7 @@ void modifyGivenPersonData(int personId, dataTypeToSearch personsDataType, vecto
                 tempFullname.append(" ");
                 tempFullname.append(tempLastname);
 
-                if(searchTableByString(tempFullname, dataTypeToSearch(fullname), persons)) {
+                if(searchTableByString(tempFullname, DataType(fullname), persons)) {
                     cout << "The specified firstname & lastname is already in use for an existing user(s)!" << endl;
                     cout << "Do you wish to continue (Y/N)?";
                     if(!displayYesNoChoice()) {
@@ -497,11 +490,11 @@ void modifyGivenPersonData(int personId, dataTypeToSearch personsDataType, vecto
 
                 cout << "Lastname sucessfully changed to: " << persons[i].lastname << endl;
                 displayPausePrompt();
-            } else if (personsDataType == dataTypeToSearch(phone)) {
+            } else if (personsDataType == DataType(phone)) {
                 cout << "Current phone No.: " << persons[i].phone << endl;
                 cout << "Type new phone No.: ";
                 tempPhone = removeSpacesAndDashesFromString(getLineString());
-                if(searchTableByString(tempPhone, dataTypeToSearch(phone), persons)) {
+                if(searchTableByString(tempPhone, DataType(phone), persons)) {
                     cout << "The specified phone number is already in use for an existing user(s)!" << endl;
                     cout << "Do you wish to continue (Y/N)?";
                     if(!displayYesNoChoice()) {
@@ -511,11 +504,11 @@ void modifyGivenPersonData(int personId, dataTypeToSearch personsDataType, vecto
                 persons[i].phone = tempPhone;
                 cout << "Phone No. sucessfully changed to: " << persons[i].phone << endl;
                 displayPausePrompt();
-            } else if (personsDataType == dataTypeToSearch(email)) {
+            } else if (personsDataType == DataType(email)) {
                 cout << "Current e-mail: " << persons[i].email << endl;
                 cout << "Type new e-mail: ";
                 tempEmail = getLineString();
-                if(searchTableByString(tempEmail, dataTypeToSearch(email), persons)) {
+                if(searchTableByString(tempEmail, DataType(email), persons)) {
                     cout << "The specified email is already in use for an existing user(s)!" << endl;
                     cout << "Do you wish to continue (Y/N)?";
                     if(!displayYesNoChoice()) {
@@ -525,7 +518,7 @@ void modifyGivenPersonData(int personId, dataTypeToSearch personsDataType, vecto
                 persons[i].email = tempEmail;
                 cout << "e-mail sucessfully changed to: " << persons[i].email << endl;
                 displayPausePrompt();
-            } else if (personsDataType == dataTypeToSearch(address)) {
+            } else if (personsDataType == DataType(address)) {
                 cout << "Current address: " << persons[i].address << endl;
                 cout << "Type new address: ";
                 persons[i].address = getLineString();
@@ -539,7 +532,7 @@ void modifyGivenPersonData(int personId, dataTypeToSearch personsDataType, vecto
 void modifyPerson(vector <Person>& persons) {
     char menuSelection;
     int personId;
-    boolean personFound = false;
+    bool personFound = false;
 
     do {
         cout << "Input proper person ID to modify : ";
@@ -574,7 +567,7 @@ void modifyPerson(vector <Person>& persons) {
                     displayPausePrompt();
                     break;
                 case '9':
-                    rewriteDataFileWithoutGivenLine(0, persons);
+                    rewriteDataFile(persons);
                     return;
                 default:
                     cout << "Only 1, 2, 3, 4, 5, 6 and 9 are allowed." << endl;
@@ -584,7 +577,7 @@ void modifyPerson(vector <Person>& persons) {
         }
     }
 
-    if (personFound == false) {
+    if (!personFound) {
         cout << "Person with ID: " << personId << " not found in AddressBook database!" << endl;
         displayPausePrompt();
     }
