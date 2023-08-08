@@ -35,6 +35,7 @@ char getLineChar();
 bool isNumber(string s);
 int getLineInt();
 char displayMainMenu();
+string makeFileString(Person persons);
 void addNewPerson(vector <Person>& persons);
 void displayAllPersons(vector <Person>& persons);
 void loadDataFromTextFile(vector <Person>& persons);
@@ -285,7 +286,8 @@ void addNewPerson(vector <Person>& persons) {
         displayPausePrompt();
     }
 
-    dataFile << newPersonToAdd.id << "|" << newPersonToAdd.firstname << "|" << newPersonToAdd.lastname << "|" << newPersonToAdd.email << "|" << newPersonToAdd.phone << "|" << newPersonToAdd.address << "|" << endl;
+    //dataFile << newPersonToAdd.id << "|" << newPersonToAdd.firstname << "|" << newPersonToAdd.lastname << "|" << newPersonToAdd.email << "|" << newPersonToAdd.phone << "|" << newPersonToAdd.address << "|" << endl;
+    dataFile << makeFileString(newPersonToAdd) << endl;
 
     dataFile.close();
 
@@ -380,6 +382,25 @@ string removeSpacesAndDashesFromString(string stringToClear) {
     return stringToClear;
 }
 
+string makeFileString(Person persons){
+    string fileString;
+
+    fileString.append(to_string(persons.id));
+    fileString.append("|");
+    fileString.append(persons.firstname);
+    fileString.append("|");
+    fileString.append(persons.lastname);
+    fileString.append("|");
+    fileString.append(persons.email);
+    fileString.append("|");
+    fileString.append(persons.phone);
+    fileString.append("|");
+    fileString.append(persons.address);
+    fileString.append("|");
+
+    return fileString;
+}
+
 void rewriteDataFile(const vector <Person>& persons) {
     ofstream addressBookFile(ADDRESSBOOK_FILE, ios::out | ios::trunc);
 
@@ -388,7 +409,8 @@ void rewriteDataFile(const vector <Person>& persons) {
         displayPausePrompt();
     }
     for (size_t i = 0; i < persons.size(); ++i) {
-            addressBookFile << persons[i].id << "|" << persons[i].firstname << "|" << persons[i].lastname << "|" << persons[i].email << "|" << persons[i].phone << "|" << persons[i].address << "|" << endl;
+            //addressBookFile << persons[i].id << "|" << persons[i].firstname << "|" << persons[i].lastname << "|" << persons[i].email << "|" << persons[i].phone << "|" << persons[i].address << "|" << endl;
+            addressBookFile << makeFileString(persons[i]) << endl;
         }
     addressBookFile.close();
 }
