@@ -320,7 +320,7 @@ void loadDataFromTextFile(vector <Person>& persons) {
     dataFile.open(ADDRESSBOOK_FILE, ios::in);
 
     if (!dataFile.good()) {
-        cout << "File addressBook.txt not found, creating new file!" << endl;
+        cout << "File addressBook.txt not found, new file will be created after adding first person!" << endl;
         displayPausePrompt();
     }
 
@@ -417,29 +417,43 @@ void rewriteDataFile(const vector <Person>& persons) {
 void deletePerson(vector <Person>& persons) {
     int personId;
     bool personFound = false;
+    fstream dataFile;
 
-    do {
-        cout << "Input proper person ID to delete : ";
-        personId = getLineInt();
-    } while((personId < 1 ) || (personId > persons.back().id));
+    dataFile.open(ADDRESSBOOK_FILE, ios::in);
 
-    for(vector <Person> :: iterator itr = persons.begin(); itr != persons.end(); ++itr) {
+    if (!dataFile.good()) {
 
-        if ((*itr).id == personId) {
-            personFound = true;
-            cout << "You are going to delete: " << (*itr).firstname << " " << (*itr).lastname << ", Do you wish to continue (Y/N) ? ";
-            if (displayYesNoChoice()) {
-                persons.erase(itr--);
-                rewriteDataFile(persons);
-                cout << "Person with ID : " << personId << " successfully deleted." << endl;
-                displayPausePrompt();
+        cout << "File addressBook.txt not found, no records to delete!" << endl;
+        displayPausePrompt();
+
+    } else {
+
+        do {
+            cout << "Input proper person ID to delete : ";
+            personId = getLineInt();
+        } while((personId < 1 ) || (personId > persons.back().id));
+
+        for(vector <Person> :: iterator itr = persons.begin(); itr != persons.end(); ++itr) {
+
+            if ((*itr).id == personId) {
+                personFound = true;
+                cout << "You are going to delete: " << (*itr).firstname << " " << (*itr).lastname << ", Do you wish to continue (Y/N) ? ";
+                if (displayYesNoChoice()) {
+                    persons.erase(itr--);
+                    rewriteDataFile(persons);
+                    cout << "Person with ID : " << personId << " successfully deleted." << endl;
+                    displayPausePrompt();
+                }
             }
         }
+        if (!personFound) {
+            cout << "Person with ID: " << personId << " not found in AddressBook database!" << endl;
+            displayPausePrompt();
+        }
+
     }
-    if (!personFound) {
-        cout << "Person with ID: " << personId << " not found in AddressBook database!" << endl;
-        displayPausePrompt();
-    }
+    dataFile.close();
+
 }
 
 char displayEditSubMenu() {
@@ -491,7 +505,6 @@ void modifyGivenPersonData(int personId, DataType personsDataType, vector <Perso
                 person.firstname = tempFirstname;
                 cout << "Firstname sucessfully changed to: " << person.firstname << endl;
                 person.firstname = tempFirstname;
-                cout << "temp=" << tempFirstname << " and " << person.firstname << endl;
                 displayPausePrompt();
             } else if (personsDataType == DataType(lastname)) {
                 cout << "Current lastname: " << person.lastname << endl;
@@ -557,52 +570,64 @@ void modifyPerson(vector <Person>& persons) {
     char menuSelection;
     int personId;
     bool personFound = false;
+    fstream dataFile;
 
-    do {
-        cout << "Input proper person ID to modify : ";
-        personId = getLineInt();
-    } while((personId < 1 ) || (personId > persons.back().id));
+    dataFile.open(ADDRESSBOOK_FILE, ios::in);
 
-    for(Person& person : persons) {
-        if (person.id == personId) {
-            personFound = true;
+    if (!dataFile.good()) {
 
-            while (true) {
-                menuSelection = displayEditSubMenu();
+        cout << "File addressBook.txt not found, no records to modify!" << endl;
+        displayPausePrompt();
 
-                switch (menuSelection) {
-                case '1':
-                    modifyGivenPersonData(personId, firstname, persons);
-                    break;
-                case '2':
-                    modifyGivenPersonData(personId, lastname, persons);
-                    break;
-                case '3':
-                    modifyGivenPersonData(personId, phone, persons);
-                    break;
-                case '4':
-                    modifyGivenPersonData(personId, email, persons);
-                    break;
-                case '5':
-                    modifyGivenPersonData(personId, address, persons);
-                    break;
-                case '6':
-                    displayRecordByTableIndex(person);
-                    displayPausePrompt();
-                    break;
-                case '9':
-                    rewriteDataFile(persons);
-                    return;
-                default:
-                    cout << "Only 1, 2, 3, 4, 5, 6 and 9 are allowed." << endl;
-                    displayPausePrompt();
+    } else {
+
+        do {
+            cout << "Input proper person ID to modify : ";
+            personId = getLineInt();
+        } while((personId < 1 ) || (personId > persons.back().id));
+
+        for(Person& person : persons) {
+            if (person.id == personId) {
+                personFound = true;
+
+                while (true) {
+                    menuSelection = displayEditSubMenu();
+
+                    switch (menuSelection) {
+                    case '1':
+                        modifyGivenPersonData(personId, firstname, persons);
+                        break;
+                    case '2':
+                        modifyGivenPersonData(personId, lastname, persons);
+                        break;
+                    case '3':
+                        modifyGivenPersonData(personId, phone, persons);
+                        break;
+                    case '4':
+                        modifyGivenPersonData(personId, email, persons);
+                        break;
+                    case '5':
+                        modifyGivenPersonData(personId, address, persons);
+                        break;
+                    case '6':
+                        displayRecordByTableIndex(person);
+                        displayPausePrompt();
+                        break;
+                    case '9':
+                        rewriteDataFile(persons);
+                        return;
+                    default:
+                        cout << "Only 1, 2, 3, 4, 5, 6 and 9 are allowed." << endl;
+                        displayPausePrompt();
+                    }
                 }
             }
         }
-    }
 
-    if (!personFound) {
-        cout << "Person with ID: " << personId << " not found in AddressBook database!" << endl;
-        displayPausePrompt();
+        if (!personFound) {
+            cout << "Person with ID: " << personId << " not found in AddressBook database!" << endl;
+            displayPausePrompt();
+        }
     }
+    dataFile.close();
 }
