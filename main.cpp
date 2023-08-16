@@ -45,58 +45,14 @@ void rewriteDataFile(const vector <Person>& persons);
 void deletePerson(vector <Person>& persons);
 char displayEditSubMenu();
 void modifyPerson(vector <Person>& persons);
+void manageMainMenu(vector <Person>& persons);
 
 int main() {
     vector <Person> persons;
-    char menuSelection;
-    string stringToSearch;
-
 
     loadDataFromTextFile(persons);
+    manageMainMenu(persons);
 
-    while (true) {
-        menuSelection = displayMainMenu();
-
-        switch (menuSelection) {
-        case '1':
-            addNewPerson(persons);
-            break;
-        case '2':
-            cout << "Input firstname: ";
-            stringToSearch = getLineString();
-
-            if (!searchTableByString(stringToSearch, DataType(firstname), persons)) {
-                cout << "No such person in your AddressBook!" << endl;
-            }
-            displayPausePrompt();
-            break;
-        case '3':
-            cout << "Input lastname: ";
-            stringToSearch = getLineString();
-
-            if (!searchTableByString(stringToSearch, DataType(lastname), persons)) {
-                cout << "No such person in your AddressBook!" << endl;
-            }
-            displayPausePrompt();
-            break;
-        case '4':
-            displayAllPersons(persons);
-            break;
-        case '5':
-            deletePerson(persons);
-            break;
-        case '6':
-            modifyPerson(persons);
-            break;
-        case '9':
-            exit(0);
-        case '0':
-            system("cls");
-        default:
-            cout << "Only 1, 2, 3, 4, 5, 6 and 9 are allowed." << endl;
-            displayPausePrompt();
-        }
-    }
     return 0;
 }
 
@@ -630,4 +586,55 @@ void modifyPerson(vector <Person>& persons) {
         }
     }
     dataFile.close();
+}
+
+void manageMainMenu(vector <Person>& persons){
+
+    char menuSelection;
+    string stringToSearch;
+
+        while (true) {
+        menuSelection = displayMainMenu();
+
+        switch (menuSelection) {
+        case '1':
+            addNewPerson(persons);
+            break;
+        case '2':
+            cout << "Input firstname: ";
+            stringToSearch = getLineString();
+
+            if (!searchTableByString(stringToSearch, DataType(firstname), persons)) {
+                cout << "No such person in your AddressBook!" << endl;
+            }
+            displayPausePrompt();
+            break;
+        case '3':
+            cout << "Input lastname: ";
+            stringToSearch = getLineString();
+
+            if (!searchTableByString(stringToSearch, DataType(lastname), persons)) {
+                cout << "No such person in your AddressBook!" << endl;
+            }
+            displayPausePrompt();
+            break;
+        case '4':
+            displayAllPersons(persons);
+            break;
+        case '5':
+            deletePerson(persons);
+            break;
+        case '6':
+            modifyPerson(persons);
+            break;
+        case '9':
+            exit(0);
+        case '0':
+            system("cls");
+        default:
+            cout << "Only 1, 2, 3, 4, 5, 6 and 9 are allowed." << endl;
+            displayPausePrompt();
+        }
+    }
+
 }
