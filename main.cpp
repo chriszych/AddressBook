@@ -7,6 +7,11 @@
 
 using namespace std;
 
+struct User {
+    int id;
+    string username, password;
+};
+
 struct Person {
     int id;
     string firstname;
@@ -45,13 +50,18 @@ void rewriteDataFile(const vector <Person>& persons);
 void deletePerson(vector <Person>& persons);
 char displayEditSubMenu();
 void modifyPerson(vector <Person>& persons);
-void manageMainMenu(vector <Person>& persons);
+int manageMainMenu(vector <Person>& persons, vector <User>& users);
+int loginUser(vector <User>& users);
+void registerUser(vector <User>& users);
+void changeUserPassword(int idLoggedUser, vector <User>& users);
+int manageUsersManu(vector <Person>& persons, vector <User>& users);
 
 int main() {
     vector <Person> persons;
+    vector <User> users;
+    int idLoggedUser = 0;
 
-    loadDataFromTextFile(persons);
-    manageMainMenu(persons);
+    idLoggedUser = manageUsersManu(persons, users);
 
     return 0;
 }
@@ -175,9 +185,10 @@ char displayMainMenu() {
     cout << "4. List all persons" << endl;
     cout << "5. Delete person" << endl;
     cout << "6. Modify person" << endl;
-    cout << "9. Exit" << endl;
+    cout << "7. Change user password" << endl;
+    cout << "9. Logout" << endl;
     cout << "-----------------------------" << endl;
-    cout << "Enter your choice (1-6,9): ";
+    cout << "Enter your choice (1-7,9): ";
 
     menuSelection = getLineChar();
     return menuSelection;
@@ -588,12 +599,13 @@ void modifyPerson(vector <Person>& persons) {
     dataFile.close();
 }
 
-void manageMainMenu(vector <Person>& persons){
+int manageMainMenu(vector <Person>& persons, vector <User>& users) {
 
     char menuSelection;
     string stringToSearch;
+    int idLoggedUser;
 
-        while (true) {
+    while (true) {
         menuSelection = displayMainMenu();
 
         switch (menuSelection) {
@@ -627,14 +639,129 @@ void manageMainMenu(vector <Person>& persons){
         case '6':
             modifyPerson(persons);
             break;
+        case '7':
+            //modifyPerson(persons);
+            changeUserPassword(idLoggedUser, users);
+            break;
         case '9':
-            exit(0);
+            idLoggedUser = 0;
+            return idLoggedUser;
+            //exit(0);
         case '0':
             system("cls");
         default:
-            cout << "Only 1, 2, 3, 4, 5, 6 and 9 are allowed." << endl;
+            cout << "Only 1, 2, 3, 4, 5, 6, 7 and 9 are allowed." << endl;
             displayPausePrompt();
         }
     }
+}
 
+int loginUser(vector <User>& users) {
+
+    string userName, userPassword;
+    cout << "Input login: ";
+    cin >> userName;
+
+    for(User& user : users) {
+        if (user.username == userName) {
+
+            for (int loginAttempts = 0; loginAttempts < 3; ++loginAttempts) {
+                cout << "Enter password. Attempts left: " << 3 - loginAttempts << ": ";
+                cin >> userPassword;
+                if (user.password == userPassword) {
+                    cout << "You are logged in." << endl;
+                    Sleep(1000);
+                    return user.id;
+                }
+            }
+            cout << "You have entered incorrect password 3 times. Wait 3 seconds before next attempt." << endl;
+            Sleep(3000);
+            return 0;
+        }
+    }
+    cout << "No user with enetred login" << endl;
+    Sleep(1500);
+    return 0;
+}
+
+void registerUser(vector <User>& users) {
+
+    string userName, userPassword;
+    User newUserToAdd;
+
+    cout << "Enter user name: ";
+    cin >> userName;
+
+    for(User& user : users) {
+        if (user.username == userName) {
+            cout << "User name already exist. Enter different user name: ";
+            cin >> userName;
+        }
+    }
+    cout << "Enter password: ";
+    cin >> userPassword;
+
+    newUserToAdd.id = !users.size() ? 1 : users.back().id + 1;
+    newUserToAdd.username = userName;
+    newUserToAdd.password = userPassword;
+    users.push_back(newUserToAdd);
+    cout << "User account successfully registered." << endl;
+    Sleep (1000);
+}
+
+void changeUserPassword(int idLoggedUser, vector <User>& users) {
+
+    string userPassword;
+    cout << "Enter password: ";
+    cin >> userPassword;
+
+    for(User& user : users) {
+        if(user.id == idLoggedUser) {
+            user.password = userPassword;
+            cout << "Password successfully changed." << endl;
+            Sleep(1500);
+        }
+    }
+}
+
+int manageUsersManu(vector <Person>& persons, vector <User>& users) {
+
+    char menuSelection;
+    int idLoggedUser = 0;
+
+    while(1) {
+        if (idLoggedUser == 0) {
+            system("cls");
+            cout << "1. Login" << endl;
+            cout << "2. Register" << endl;
+            cout << "9. Exit" << endl;
+            cin >> menuSelection;
+
+            if (menuSelection == '1') {
+                idLoggedUser = loginUser(users);
+
+            } else if (menuSelection == '2') {
+                registerUser(users);
+            } else if (menuSelection == '9') {
+                //exit(0);
+                return idLoggedUser;
+            }
+        }
+        else {
+//            system("cls");
+//            cout << "1. Change password" << endl;
+//            cout << "2. Logout" << endl;
+//            cin >> menuSelection;
+//
+//            if (menuSelection == '1') {
+//                changeUserPassword(idLoggedUser, users);
+//            } else if (menuSelection == '2') {
+//                idLoggedUser = 0 ;
+//            }
+            loadDataFromTextFile(persons);
+            idLoggedUser = manageMainMenu(persons, users);
+        }
+    }
+    //what should be returned here ?
+    return idLoggedUser;
 }
