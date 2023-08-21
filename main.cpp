@@ -4,6 +4,7 @@
 #include <conio.h>
 #include <vector>
 #include <iomanip>
+#include <stdio.h>
 
 using namespace std;
 
@@ -31,37 +32,42 @@ enum DataType {
 } ;
 
 const string ADDRESSBOOK_FILE = "addressBook.txt";
+const string USERS_FILE = "users.txt";
 
 void displayPausePrompt();
-void displayRecordByTableIndex(const Person& persons);
+void displayRecordByTableIndex(const Person person);
 bool searchTableByString(string stringToSearch, DataType personsDataType, vector <Person>& persons);
 string getLineString();
 char getLineChar();
 bool isNumber(string s);
 int getLineInt();
 char displayMainMenu();
-string makeFileString(const Person& persons);
+string makeFileString(int idLoggedUser, const Person& persons);
 void addNewPerson(vector <Person>& persons);
 void displayAllPersons(vector <Person>& persons);
-void loadDataFromTextFile(vector <Person>& persons);
+void loadDataFromTextFile(int idLoggedUser, vector <Person>& persons);
 bool displayYesNoChoice();
 string removeSpacesAndDashesFromString(string stringToClear);
-void rewriteDataFile(const vector <Person>& persons);
-void deletePerson(vector <Person>& persons);
+void saveDataFile(int idLoggedUser, const vector <Person>& persons);
+void deletePerson(int idLoggedUser, vector <Person>& persons);
 char displayEditSubMenu();
-void modifyPerson(vector <Person>& persons);
-int manageMainMenu(vector <Person>& persons, vector <User>& users);
+void modifyPerson(int idLoggedUser, vector <Person>& persons);
+int manageMainMenu(int idLoggedUser, vector <Person>& persons, vector <User>& users);
 int loginUser(vector <User>& users);
+bool checkIfUserNameAlreadyExist(string userName, vector <User>& users);
+bool checkIfUserDataEmpty(string userData);
 void registerUser(vector <User>& users);
 void changeUserPassword(int idLoggedUser, vector <User>& users);
-int manageUsersManu(vector <Person>& persons, vector <User>& users);
+void loadUserDataFromTextFile(vector <User>& users);
+void rewriteUsersFile(const vector <User>& users);
+void manageUsersMenu(vector <Person>& persons, vector <User>& users);
 
 int main() {
+
     vector <Person> persons;
     vector <User> users;
-    int idLoggedUser = 0;
 
-    idLoggedUser = manageUsersManu(persons, users);
+    manageUsersMenu(persons, users);
 
     return 0;
 }
@@ -71,8 +77,8 @@ void displayPausePrompt() {
     getchar();
 }
 
-void displayRecordByTableIndex(const Person& persons) {
-    cout << "(" << persons.id << "). " << persons.firstname << " " << persons.lastname << ", " << persons.email << ", " << persons.phone << ", " << persons.address <<  endl;
+void displayRecordByTableIndex(const Person person) {
+    cout << "(" << person.id << "). " << person.firstname << " " << person.lastname << ", " << person.email << ", " << person.phone << ", " << person.address <<  endl;
 }
 
 bool searchTableByString(string stringToSearch, DataType personsDataType, vector <Person>& persons) {
@@ -194,7 +200,7 @@ char displayMainMenu() {
     return menuSelection;
 }
 
-void addNewPerson(vector <Person>& persons) {
+void addNewPerson(int idLoggedUser, vector <Person>& persons) {
     ofstream dataFile;
     Person newPersonToAdd;
     string fname = "";
@@ -255,7 +261,7 @@ void addNewPerson(vector <Person>& persons) {
         cout << "Error opening file: addressBook.txt!" << endl;
         displayPausePrompt();
     }
-    dataFile << makeFileString(newPersonToAdd) << endl;
+    dataFile << makeFileString(idLoggedUser, newPersonToAdd) << endl;
     dataFile.close();
 
     cout << "New person: " << newPersonToAdd.firstname << " " << newPersonToAdd.lastname << " added successfully to your AddressBook!" << endl;
@@ -276,13 +282,13 @@ void displayAllPersons(vector <Person>& persons) {
     displayPausePrompt();
 }
 
-void loadDataFromTextFile(vector <Person>& persons) {
+void loadDataFromTextFile(int idLoggedUser, vector <Person>& persons) {
 
     const char DATA_LIMITER = '|';
     ifstream dataFile;
-    string textLine;
+    string textLine, field;
     Person newPersonToAdd;
-    size_t dataLimiterPosition;
+    int userId;
 
     dataFile.open(ADDRESSBOOK_FILE, ios::in);
 
@@ -292,31 +298,22 @@ void loadDataFromTextFile(vector <Person>& persons) {
     }
 
     while(getline(dataFile,textLine)) {
-        dataLimiterPosition = textLine.find(DATA_LIMITER);
-        newPersonToAdd.id = atoi(textLine.substr(0, dataLimiterPosition).c_str());
-        textLine.erase(0, dataLimiterPosition + 1);
 
-        dataLimiterPosition = textLine.find(DATA_LIMITER);
-        newPersonToAdd.firstname = textLine.substr(0, dataLimiterPosition);
-        textLine.erase(0, dataLimiterPosition + 1);
+        istringstream iss(textLine);
 
-        dataLimiterPosition = textLine.find(DATA_LIMITER);
-        newPersonToAdd.lastname = textLine.substr(0, dataLimiterPosition);
-        textLine.erase(0, dataLimiterPosition + 1);
+        getline(iss, field, DATA_LIMITER);
+        newPersonToAdd.id = stoi(field);
+        getline(iss, field, DATA_LIMITER);
+        userId = stoi(field);
+        getline(iss, newPersonToAdd.firstname, DATA_LIMITER);
+        getline(iss, newPersonToAdd.lastname, DATA_LIMITER);
+        getline(iss, newPersonToAdd.email, DATA_LIMITER);
+        getline(iss, newPersonToAdd.phone, DATA_LIMITER);
+        getline(iss, newPersonToAdd.address, DATA_LIMITER);
 
-        dataLimiterPosition = textLine.find(DATA_LIMITER);
-        newPersonToAdd.email = textLine.substr(0, dataLimiterPosition);
-        textLine.erase(0, dataLimiterPosition + 1);
-
-        dataLimiterPosition = textLine.find(DATA_LIMITER);
-        newPersonToAdd.phone = textLine.substr(0, dataLimiterPosition);
-        textLine.erase(0, dataLimiterPosition + 1);
-
-        dataLimiterPosition = textLine.find(DATA_LIMITER);
-        newPersonToAdd.address = textLine.substr(0, dataLimiterPosition);
-        textLine.erase(0, dataLimiterPosition + 1);
-
-        persons.push_back(newPersonToAdd);
+        if (userId == idLoggedUser) {
+            persons.push_back(newPersonToAdd);
+        }
     }
     dataFile.close();
 }
@@ -349,10 +346,13 @@ string removeSpacesAndDashesFromString(string stringToClear) {
     return stringToClear;
 }
 
-string makeFileString(const Person& persons) {
+string makeFileString(int idLoggedUser, const Person& persons) {
+
     string fileString;
 
     fileString.append(to_string(persons.id));
+    fileString.append("|");
+    fileString.append(to_string(idLoggedUser));
     fileString.append("|");
     fileString.append(persons.firstname);
     fileString.append("|");
@@ -368,20 +368,51 @@ string makeFileString(const Person& persons) {
     return fileString;
 }
 
-void rewriteDataFile(const vector <Person>& persons) {
-    ofstream addressBookFile(ADDRESSBOOK_FILE, ios::out | ios::trunc);
+void saveDataFile(int idLoggedUser, const vector <Person>& persons) {
+
+    const char DATA_LIMITER = '|';
+    string textLine, field;
+    int userId, personId;
+    fstream addressBookFile(ADDRESSBOOK_FILE, ios::in);
+    fstream tempBookFile("tempBook.txt", ios::out | ios::trunc);
 
     if (!addressBookFile.good()) {
         cout << "Error opening file: addressBook.txt!" << endl;
         displayPausePrompt();
     }
-    for (Person person : persons) {
-        addressBookFile << makeFileString(person) << endl;
+    while(getline(addressBookFile,textLine)) {
+
+        istringstream iss(textLine);
+        getline(iss, field, DATA_LIMITER);
+        personId = stoi(field);
+
+        getline(iss, field, DATA_LIMITER);
+        userId = stoi(field);
+
+        if(userId == idLoggedUser) {
+
+            for (Person person : persons) {
+                if (person.id == personId)
+                    tempBookFile << makeFileString(idLoggedUser, person) << endl;
+            }
+        } else {
+            tempBookFile << textLine << endl;
+        }
     }
+
     addressBookFile.close();
+    tempBookFile.close();
+    if (remove(ADDRESSBOOK_FILE.c_str()) != 0) {
+        cout << "Error deleting AddressBook file!";
+        displayPausePrompt();
+    }
+    if (rename("tempBook.txt", ADDRESSBOOK_FILE.c_str()) != 0) {
+        cout << "Error renaming AddressBook file!";
+        displayPausePrompt();
+    }
 }
 
-void deletePerson(vector <Person>& persons) {
+void deletePerson(int idLoggedUser, vector <Person>& persons) {
     int personId;
     bool personFound = false;
     fstream dataFile;
@@ -394,6 +425,7 @@ void deletePerson(vector <Person>& persons) {
         displayPausePrompt();
 
     } else {
+        dataFile.close();
 
         do {
             cout << "Input proper person ID to delete : ";
@@ -407,7 +439,7 @@ void deletePerson(vector <Person>& persons) {
                 cout << "You are going to delete: " << (*itr).firstname << " " << (*itr).lastname << ", Do you wish to continue (Y/N) ? ";
                 if (displayYesNoChoice()) {
                     persons.erase(itr--);
-                    rewriteDataFile(persons);
+                    saveDataFile(idLoggedUser, persons);
                     cout << "Person with ID : " << personId << " successfully deleted." << endl;
                     displayPausePrompt();
                 }
@@ -417,10 +449,7 @@ void deletePerson(vector <Person>& persons) {
             cout << "Person with ID: " << personId << " not found in AddressBook database!" << endl;
             displayPausePrompt();
         }
-
     }
-    dataFile.close();
-
 }
 
 char displayEditSubMenu() {
@@ -533,7 +562,7 @@ void modifyGivenPersonData(int personId, DataType personsDataType, vector <Perso
     }
 }
 
-void modifyPerson(vector <Person>& persons) {
+void modifyPerson(int idLoggedUser, vector <Person>& persons) {
     char menuSelection;
     int personId;
     bool personFound = false;
@@ -547,6 +576,7 @@ void modifyPerson(vector <Person>& persons) {
         displayPausePrompt();
 
     } else {
+        dataFile.close();
 
         do {
             cout << "Input proper person ID to modify : ";
@@ -581,7 +611,7 @@ void modifyPerson(vector <Person>& persons) {
                         displayPausePrompt();
                         break;
                     case '9':
-                        rewriteDataFile(persons);
+                        saveDataFile(idLoggedUser, persons);
                         return;
                     default:
                         cout << "Only 1, 2, 3, 4, 5, 6 and 9 are allowed." << endl;
@@ -596,21 +626,20 @@ void modifyPerson(vector <Person>& persons) {
             displayPausePrompt();
         }
     }
-    dataFile.close();
 }
 
-int manageMainMenu(vector <Person>& persons, vector <User>& users) {
+int manageMainMenu(int idLoggedUser, vector <Person>& persons, vector <User>& users) {
 
     char menuSelection;
     string stringToSearch;
-    int idLoggedUser;
 
     while (true) {
+
         menuSelection = displayMainMenu();
 
         switch (menuSelection) {
         case '1':
-            addNewPerson(persons);
+            addNewPerson(idLoggedUser, persons);
             break;
         case '2':
             cout << "Input firstname: ";
@@ -634,19 +663,18 @@ int manageMainMenu(vector <Person>& persons, vector <User>& users) {
             displayAllPersons(persons);
             break;
         case '5':
-            deletePerson(persons);
+            deletePerson(idLoggedUser, persons);
             break;
         case '6':
-            modifyPerson(persons);
+            modifyPerson(idLoggedUser, persons);
             break;
         case '7':
-            //modifyPerson(persons);
             changeUserPassword(idLoggedUser, users);
             break;
         case '9':
             idLoggedUser = 0;
+            persons.clear();
             return idLoggedUser;
-            //exit(0);
         case '0':
             system("cls");
         default:
@@ -660,14 +688,14 @@ int loginUser(vector <User>& users) {
 
     string userName, userPassword;
     cout << "Input login: ";
-    cin >> userName;
+    userName = getLineString();
 
     for(User& user : users) {
         if (user.username == userName) {
 
             for (int loginAttempts = 0; loginAttempts < 3; ++loginAttempts) {
                 cout << "Enter password. Attempts left: " << 3 - loginAttempts << ": ";
-                cin >> userPassword;
+                userPassword = getLineString();
                 if (user.password == userPassword) {
                     cout << "You are logged in." << endl;
                     Sleep(1000);
@@ -679,9 +707,33 @@ int loginUser(vector <User>& users) {
             return 0;
         }
     }
-    cout << "No user with enetred login" << endl;
+    cout << "No user with entered login" << endl;
     Sleep(1500);
     return 0;
+}
+
+bool checkIfUserNameAlreadyExist(string userName, vector <User>& users) {
+
+    bool userFound = false;
+
+    for(User& user : users) {
+        if (user.username == userName) {
+            cout << "User name already exist. Enter different user name." << endl;
+            userFound = true;
+        }
+    }
+    return userFound;
+}
+
+bool checkIfUserDataEmpty(string userData) {
+
+    bool userDataEmpty = false;
+
+    if (userData == "") {
+        cout << "Empty field is not allowed. You have to enter proper data." << endl;
+        userDataEmpty = true;
+    }
+    return userDataEmpty;
 }
 
 void registerUser(vector <User>& users) {
@@ -689,22 +741,21 @@ void registerUser(vector <User>& users) {
     string userName, userPassword;
     User newUserToAdd;
 
-    cout << "Enter user name: ";
-    cin >> userName;
+    do {
+        cout << "Enter user name: ";
+        userName = getLineString();
+    } while(checkIfUserNameAlreadyExist(userName, users) || checkIfUserDataEmpty(userName));
 
-    for(User& user : users) {
-        if (user.username == userName) {
-            cout << "User name already exist. Enter different user name: ";
-            cin >> userName;
-        }
-    }
-    cout << "Enter password: ";
-    cin >> userPassword;
+    do {
+        cout << "Enter password: ";
+        userPassword = getLineString();
+    } while(checkIfUserDataEmpty(userPassword));
 
     newUserToAdd.id = !users.size() ? 1 : users.back().id + 1;
     newUserToAdd.username = userName;
     newUserToAdd.password = userPassword;
     users.push_back(newUserToAdd);
+
     cout << "User account successfully registered." << endl;
     Sleep (1000);
 }
@@ -713,7 +764,7 @@ void changeUserPassword(int idLoggedUser, vector <User>& users) {
 
     string userPassword;
     cout << "Enter password: ";
-    cin >> userPassword;
+    userPassword = getLineString();
 
     for(User& user : users) {
         if(user.id == idLoggedUser) {
@@ -723,19 +774,79 @@ void changeUserPassword(int idLoggedUser, vector <User>& users) {
         }
     }
 }
+void loadUserDataFromTextFile(vector <User>& users) {
 
-int manageUsersManu(vector <Person>& persons, vector <User>& users) {
+    const char DATA_LIMITER = '|';
+    ifstream dataFile;
+    string textLine, field;
+    User newUserToAdd;
+
+    dataFile.open(USERS_FILE, ios::in);
+
+    if (!dataFile.good()) {
+        cout << "File users.txt not found, new file will be created after adding first person!" << endl;
+        displayPausePrompt();
+    }
+    while(getline(dataFile,textLine)) {
+
+        istringstream iss (textLine);
+        getline(iss, field, DATA_LIMITER);
+        newUserToAdd.id = stoi(field);
+        getline(iss, newUserToAdd.username, DATA_LIMITER);
+        getline(iss, newUserToAdd.password, DATA_LIMITER);
+
+        users.push_back(newUserToAdd);
+    }
+    dataFile.close();
+}
+
+string makeUserString(const User& users) {
+
+    string fileUserString;
+
+    fileUserString.append(to_string(users.id));
+    fileUserString.append("|");
+    fileUserString.append(users.username);
+    fileUserString.append("|");
+    fileUserString.append(users.password);
+    fileUserString.append("|");
+
+    return fileUserString;
+}
+
+void rewriteUsersFile(const vector <User>& users) {
+    ofstream usersFile(USERS_FILE, ios::out | ios::trunc);
+
+    if (!usersFile.good()) {
+        cout << "Error opening file: users.txt!" << endl;
+        displayPausePrompt();
+    }
+    for (User user : users) {
+        usersFile << makeUserString(user) << endl;
+    }
+    usersFile.close();
+}
+
+void manageUsersMenu(vector <Person>& persons, vector <User>& users) {
 
     char menuSelection;
     int idLoggedUser = 0;
 
+    loadUserDataFromTextFile(users);
+
     while(1) {
         if (idLoggedUser == 0) {
+
             system("cls");
+            cout << "   >> User Login Menu <<" << endl;
+            cout << "----------------------------" << endl;
             cout << "1. Login" << endl;
             cout << "2. Register" << endl;
             cout << "9. Exit" << endl;
-            cin >> menuSelection;
+            cout << "----------------------------" << endl;
+            cout << "Enter your choice (1-2, 9): ";
+
+            menuSelection = getLineChar();
 
             if (menuSelection == '1') {
                 idLoggedUser = loginUser(users);
@@ -743,25 +854,14 @@ int manageUsersManu(vector <Person>& persons, vector <User>& users) {
             } else if (menuSelection == '2') {
                 registerUser(users);
             } else if (menuSelection == '9') {
-                //exit(0);
-                return idLoggedUser;
+                rewriteUsersFile(users);
+                return;
             }
-        }
-        else {
-//            system("cls");
-//            cout << "1. Change password" << endl;
-//            cout << "2. Logout" << endl;
-//            cin >> menuSelection;
-//
-//            if (menuSelection == '1') {
-//                changeUserPassword(idLoggedUser, users);
-//            } else if (menuSelection == '2') {
-//                idLoggedUser = 0 ;
-//            }
-            loadDataFromTextFile(persons);
-            idLoggedUser = manageMainMenu(persons, users);
+        } else {
+
+            loadDataFromTextFile(idLoggedUser, persons);
+            idLoggedUser = manageMainMenu(idLoggedUser, persons, users);
         }
     }
-    //what should be returned here ?
-    return idLoggedUser;
+    return;
 }
