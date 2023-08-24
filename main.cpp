@@ -35,7 +35,7 @@ const string ADDRESSBOOK_FILE = "addressBook.txt";
 const string USERS_FILE = "users.txt";
 
 void displayPausePrompt();
-void displayRecordByTableIndex(const Person person);
+void displayRecordsByIndex(const Person person);
 bool searchTableByString(string stringToSearch, DataType personsDataType, vector <Person>& persons);
 string getLineString();
 char getLineChar();
@@ -45,21 +45,22 @@ char displayMainMenu();
 string makeFileString(int idLoggedUser, const Person& persons);
 void addNewPerson(vector <Person>& persons);
 void displayAllPersons(vector <Person>& persons);
-void loadDataFromTextFile(int idLoggedUser, vector <Person>& persons);
+void loadDataFromFile(int idLoggedUser, vector <Person>& persons);
 bool displayYesNoChoice();
-string removeSpacesAndDashesFromString(string stringToClear);
+string clearPhoneNumber(string stringToClear);
 void saveDataFile(int idLoggedUser, const vector <Person>& persons);
 void deletePerson(int idLoggedUser, vector <Person>& persons);
 char displayEditSubMenu();
 void modifyPerson(int idLoggedUser, vector <Person>& persons);
 int manageMainMenu(int idLoggedUser, vector <Person>& persons, vector <User>& users);
 int loginUser(vector <User>& users);
-bool checkIfUserNameAlreadyExist(string userName, vector <User>& users);
+bool checkIfUserNameExist(string userName, vector <User>& users);
 bool checkIfUserDataEmpty(string userData);
 void registerUser(vector <User>& users);
 void changeUserPassword(int idLoggedUser, vector <User>& users);
-void loadUserDataFromTextFile(vector <User>& users);
-void rewriteUsersFile(const vector <User>& users);
+void loadUsersFromFile(vector <User>& users);
+void saveUsersFile(const vector <User>& users);
+char displayUserMenu();
 void manageUsersMenu(vector <Person>& persons, vector <User>& users);
 
 int main() {
@@ -77,7 +78,7 @@ void displayPausePrompt() {
     getchar();
 }
 
-void displayRecordByTableIndex(const Person person) {
+void displayRecordsByIndex(const Person person) {
     cout << "(" << person.id << "). " << person.firstname << " " << person.lastname << ", " << person.email << ", " << person.phone << ", " << person.address <<  endl;
 }
 
@@ -87,22 +88,22 @@ bool searchTableByString(string stringToSearch, DataType personsDataType, vector
     for(Person person : persons) {
         if (personsDataType == DataType(firstname)) {
             if (person.firstname.find(stringToSearch) != string::npos) {
-                displayRecordByTableIndex(person);
+                displayRecordsByIndex(person);
                 searchResult = true;
             }
         } else if (personsDataType == DataType(lastname)) {
             if (person.lastname.find(stringToSearch) != string::npos) {
-                displayRecordByTableIndex(person);
+                displayRecordsByIndex(person);
                 searchResult = true;
             }
         } else if (personsDataType == DataType(email)) {
             if (person.email == stringToSearch) {
-                displayRecordByTableIndex(person);
+                displayRecordsByIndex(person);
                 searchResult = true;
             }
         } else if (personsDataType == DataType(phone)) {
             if (person.phone == stringToSearch) {
-                displayRecordByTableIndex(person);
+                displayRecordsByIndex(person);
                 searchResult = true;
             }
 
@@ -113,7 +114,7 @@ bool searchTableByString(string stringToSearch, DataType personsDataType, vector
             fname.append(person.lastname);
 
             if (fname == stringToSearch) {
-                displayRecordByTableIndex(person);
+                displayRecordsByIndex(person);
                 searchResult = true;
             }
         }
@@ -180,7 +181,6 @@ char getLineChar() {
 }
 
 char displayMainMenu() {
-    char menuSelection;
 
     system("cls");
     cout << ">> ADDRESS BOOK MAIN MENU <<" << endl;
@@ -196,8 +196,7 @@ char displayMainMenu() {
     cout << "-----------------------------" << endl;
     cout << "Enter your choice (1-7,9): ";
 
-    menuSelection = getLineChar();
-    return menuSelection;
+    return getLineChar();
 }
 
 void addNewPerson(int idLoggedUser, vector <Person>& persons) {
@@ -239,7 +238,7 @@ void addNewPerson(int idLoggedUser, vector <Person>& persons) {
     }
 
     cout << "Input phone number: ";
-    newPersonToAdd.phone = removeSpacesAndDashesFromString(getLineString());
+    newPersonToAdd.phone = clearPhoneNumber(getLineString());
     if (persons.size() > 0) {
         if(searchTableByString(newPersonToAdd.phone, DataType(phone), persons)) {
             cout << "The specified phone number is already in use for an existing user(s)!" << endl;
@@ -274,7 +273,7 @@ void displayAllPersons(vector <Person>& persons) {
     if(persons.size() > 0) {
 
         for (auto person : persons) {
-            displayRecordByTableIndex(person);
+            displayRecordsByIndex(person);
         }
     } else {
         cout << "No persons in your AddressBook!" << endl;
@@ -282,7 +281,7 @@ void displayAllPersons(vector <Person>& persons) {
     displayPausePrompt();
 }
 
-void loadDataFromTextFile(int idLoggedUser, vector <Person>& persons) {
+void loadDataFromFile(int idLoggedUser, vector <Person>& persons) {
 
     const char DATA_LIMITER = '|';
     ifstream dataFile;
@@ -336,7 +335,7 @@ bool displayYesNoChoice() {
     return yesNoAnswer;
 }
 
-string removeSpacesAndDashesFromString(string stringToClear) {
+string clearPhoneNumber(string stringToClear) {
     while(stringToClear.find(" ")!=string::npos) {
         stringToClear.erase(stringToClear.find(" "),1);
     }
@@ -453,7 +452,6 @@ void deletePerson(int idLoggedUser, vector <Person>& persons) {
 }
 
 char displayEditSubMenu() {
-    char menuSelection;
 
     system("cls");
     cout << ">> What data do you want to modify? <<" << endl;
@@ -468,8 +466,7 @@ char displayEditSubMenu() {
     cout << "-----------------------------------" << endl;
     cout << "Enter your choice (1-6, 9): ";
 
-    menuSelection = getLineChar();
-    return menuSelection;
+    return getLineChar();
 }
 
 void modifyGivenPersonData(int personId, DataType personsDataType, vector <Person>& persons) {
@@ -526,7 +523,7 @@ void modifyGivenPersonData(int personId, DataType personsDataType, vector <Perso
             } else if (personsDataType == DataType(phone)) {
                 cout << "Current phone No.: " << person.phone << endl;
                 cout << "Type new phone No.: ";
-                tempPhone = removeSpacesAndDashesFromString(getLineString());
+                tempPhone = clearPhoneNumber(getLineString());
                 if(searchTableByString(tempPhone, DataType(phone), persons)) {
                     cout << "The specified phone number is already in use for an existing user(s)!" << endl;
                     cout << "Do you wish to continue (Y/N)?";
@@ -607,7 +604,7 @@ void modifyPerson(int idLoggedUser, vector <Person>& persons) {
                         modifyGivenPersonData(personId, address, persons);
                         break;
                     case '6':
-                        displayRecordByTableIndex(person);
+                        displayRecordsByIndex(person);
                         displayPausePrompt();
                         break;
                     case '9':
@@ -712,7 +709,7 @@ int loginUser(vector <User>& users) {
     return 0;
 }
 
-bool checkIfUserNameAlreadyExist(string userName, vector <User>& users) {
+bool checkIfUserNameExist(string userName, vector <User>& users) {
 
     bool userFound = false;
 
@@ -744,7 +741,7 @@ void registerUser(vector <User>& users) {
     do {
         cout << "Enter user name: ";
         userName = getLineString();
-    } while(checkIfUserNameAlreadyExist(userName, users) || checkIfUserDataEmpty(userName));
+    } while(checkIfUserNameExist(userName, users) || checkIfUserDataEmpty(userName));
 
     do {
         cout << "Enter password: ";
@@ -774,7 +771,7 @@ void changeUserPassword(int idLoggedUser, vector <User>& users) {
         }
     }
 }
-void loadUserDataFromTextFile(vector <User>& users) {
+void loadUsersFromFile(vector <User>& users) {
 
     const char DATA_LIMITER = '|';
     ifstream dataFile;
@@ -814,7 +811,7 @@ string makeUserString(const User& users) {
     return fileUserString;
 }
 
-void rewriteUsersFile(const vector <User>& users) {
+void saveUsersFile(const vector <User>& users) {
     ofstream usersFile(USERS_FILE, ios::out | ios::trunc);
 
     if (!usersFile.good()) {
@@ -827,26 +824,31 @@ void rewriteUsersFile(const vector <User>& users) {
     usersFile.close();
 }
 
+char displayUserMenu() {
+
+    system("cls");
+    cout << "   >> User Login Menu <<" << endl;
+    cout << "----------------------------" << endl;
+    cout << "1. Login" << endl;
+    cout << "2. Register" << endl;
+    cout << "9. Exit" << endl;
+    cout << "----------------------------" << endl;
+    cout << "Enter your choice (1-2, 9): ";
+
+    return getLineChar();
+}
+
 void manageUsersMenu(vector <Person>& persons, vector <User>& users) {
 
     char menuSelection;
     int idLoggedUser = 0;
 
-    loadUserDataFromTextFile(users);
+    loadUsersFromFile(users);
 
     while(1) {
         if (idLoggedUser == 0) {
 
-            system("cls");
-            cout << "   >> User Login Menu <<" << endl;
-            cout << "----------------------------" << endl;
-            cout << "1. Login" << endl;
-            cout << "2. Register" << endl;
-            cout << "9. Exit" << endl;
-            cout << "----------------------------" << endl;
-            cout << "Enter your choice (1-2, 9): ";
-
-            menuSelection = getLineChar();
+            menuSelection = displayUserMenu();
 
             if (menuSelection == '1') {
                 idLoggedUser = loginUser(users);
@@ -854,12 +856,12 @@ void manageUsersMenu(vector <Person>& persons, vector <User>& users) {
             } else if (menuSelection == '2') {
                 registerUser(users);
             } else if (menuSelection == '9') {
-                rewriteUsersFile(users);
+                saveUsersFile(users);
                 return;
             }
         } else {
 
-            loadDataFromTextFile(idLoggedUser, persons);
+            loadDataFromFile(idLoggedUser, persons);
             idLoggedUser = manageMainMenu(idLoggedUser, persons, users);
         }
     }
