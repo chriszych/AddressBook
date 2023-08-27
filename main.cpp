@@ -31,9 +31,50 @@ enum DataType {
     fullname
 } ;
 
+enum MessageType {
+    dataAlreadyExist,
+    onlyDigitsAllowed,
+    onlySingleCharacter,
+    doYouWantContinue,
+    pressAnyKeyToContinue,
+    errorOpeningFile,
+    newPersonSucessfullyAdded,
+    noPersonInAddressBook,
+    fileNotFound,
+    noFileNewCreate,
+    personNotFound,
+    onlyYNAllowed,
+    errorDeleteFile,
+    errorRenameFile,
+    inputPersonToDelete,
+    personDeleteSuccess,
+    okToDelete,
+    modifyPersonSummary,
+    inputPersonToModify,
+    inputNewData,
+    noEnteredPersonInAddressBook,
+    inputData,
+    currentData,
+    dataSuccessfullyChanged,
+    onlyNumbers16Allowed,
+    onlyNumbers17Allowed,
+    userLoggedIn,
+    enterPassword,
+    incorrectPassword3Times,
+    userNameExist,
+    emptyUserNotAllowed,
+    userSuccessfullyRegistered,
+    passSuccessfullyChanged,
+    noUserFound,
+} ;
+
 const string ADDRESSBOOK_FILE = "addressBook.txt";
 const string USERS_FILE = "users.txt";
 
+void displayMessage(MessageType displayMessageType);
+void displayMessage(MessageType displayMessageType, string dataToDisplay);
+void displayMessage(MessageType displayMessageType, string dataToDisplay, string additionalData);
+string makeFullnameString(string firstname, string lastname);
 void displayPausePrompt();
 void displayRecordsByIndex(const Person person);
 bool searchTableByString(string stringToSearch, DataType personsDataType, vector <Person>& persons);
@@ -73,13 +114,145 @@ int main() {
     return 0;
 }
 
+void displayMessage(MessageType displayMessageType) {
+    switch (displayMessageType) {
+    case onlyDigitsAllowed:
+        cout << "Only digits are allowed, type a digit : ";
+        break;
+    case onlySingleCharacter:
+        cout << "Enter single character only!" << endl;
+        break;
+    case pressAnyKeyToContinue:
+        cout << "Press any key to continue ...";
+        break;
+    case doYouWantContinue:
+        cout << "Do you wish to continue (Y/N)?";
+        break;
+    case noPersonInAddressBook:
+        cout << "No persons in your AddressBook!" << endl;
+        break;
+    case onlyYNAllowed:
+        cout << "Only Y/N are allowed." << endl;
+        break;
+    case errorDeleteFile:
+        cout << "Error deleting AddressBook file!";
+        break;
+    case errorRenameFile:
+        cout << "Error renaming AddressBook file!";
+        break;
+    case inputPersonToDelete:
+        cout << "Input proper person ID to delete : ";
+        break;
+    case inputPersonToModify:
+        cout << "Input proper person ID to modify : ";
+        break;
+    case noEnteredPersonInAddressBook:
+        cout << "No such person in your AddressBook!" << endl;
+        break;
+    case onlyNumbers16Allowed:
+        cout << "Only 1, 2, 3, 4, 5, 6 and 9 are allowed." << endl;
+        break;
+    case onlyNumbers17Allowed:
+        cout << "Only 1, 2, 3, 4, 5, 6, 7 and 9 are allowed." << endl;
+        break;
+    case userLoggedIn:
+        cout << "You are logged in." << endl;
+        break;
+    case incorrectPassword3Times:
+        cout << "You have entered incorrect password 3 times. Wait 3 seconds before next attempt." << endl;
+        break;
+    case noUserFound:
+        cout << "No user with entered login" << endl;
+        break;
+    case userNameExist:
+        cout << "User name already exist. Enter different user name." << endl;
+        break;
+    case emptyUserNotAllowed:
+        cout << "Empty field is not allowed. You have to enter proper data." << endl;
+        break;
+    case userSuccessfullyRegistered:
+        cout << "User account successfully registered." << endl;
+        break;
+    case passSuccessfullyChanged:
+        cout << "Password successfully changed." << endl;
+        break;
+    default:
+        break;
+    }
+}
+
+void displayMessage(MessageType displayMessageType, string dataToDisplay) {
+
+    switch (displayMessageType) {
+    case dataAlreadyExist:
+        cout << "The specified " << dataToDisplay << " is already in use for an existing user(s)!" << endl;
+        break;
+    case newPersonSucessfullyAdded:
+        cout << "New person: " << dataToDisplay << " added successfully to your AddressBook!" << endl;
+        break;
+    case fileNotFound:
+        cout << "Error opening file: " << dataToDisplay << endl;
+        break;
+    case noFileNewCreate:
+        cout << "File "<< dataToDisplay  <<" not found, new file will be created after adding first person!" << endl;
+        break;
+    case personNotFound:
+        cout << "Person with ID: " << dataToDisplay << " not found in AddressBook database!" << endl;
+        break;
+    case personDeleteSuccess:
+        cout << "Person with ID : " << dataToDisplay << " successfully deleted." << endl;
+        break;
+    case okToDelete:
+        cout << "You are going to delete: " << dataToDisplay << ", ";
+        break;
+    case modifyPersonSummary:
+        cout << "You are modifying: " <<  dataToDisplay << " data." << endl;
+        break;
+    case inputNewData:
+        cout << "Input new " << dataToDisplay << ": ";
+        break;
+    case inputData:
+        cout << "Input " << dataToDisplay << ": ";
+        break;
+    case enterPassword:
+        cout << "Enter password. Attempts left: " << dataToDisplay << ": ";
+        break;
+    default:
+        break;
+    }
+}
+
+void displayMessage(MessageType displayMessageType, string dataToDisplay, string additionalData) {
+
+    switch (displayMessageType) {
+    case currentData:
+        cout << "Current " << additionalData << ": " << dataToDisplay << endl;
+        break;
+    case dataSuccessfullyChanged:
+        cout << additionalData << " sucessfully changed to: " << dataToDisplay << endl;
+        break;
+    default:
+        break;
+    }
+}
+
 void displayPausePrompt() {
-    cout << "Press any key to continue ...";
+    displayMessage(pressAnyKeyToContinue);
     getchar();
 }
 
 void displayRecordsByIndex(const Person person) {
     cout << "(" << person.id << "). " << person.firstname << " " << person.lastname << ", " << person.email << ", " << person.phone << ", " << person.address <<  endl;
+}
+
+string makeFullnameString(string firstname, string lastname) {
+
+    string fname = "";
+    fname.append(firstname);
+    fname.append(" ");
+    fname.append(lastname);
+
+    return fname;
 }
 
 bool searchTableByString(string stringToSearch, DataType personsDataType, vector <Person>& persons) {
@@ -108,10 +281,9 @@ bool searchTableByString(string stringToSearch, DataType personsDataType, vector
             }
 
         } else if (personsDataType == DataType(fullname)) {
+
             string fname = "";
-            fname.append(person.firstname);
-            fname.append(" ");
-            fname.append(person.lastname);
+            fname = makeFullnameString(person.firstname, person.lastname);
 
             if (fname == stringToSearch) {
                 displayRecordsByIndex(person);
@@ -154,7 +326,7 @@ int getLineInt() {
         if (isNumber(dataString)) {
             break;
         } else {
-            cout << "Only digits are allowed, type a digit : ";
+            displayMessage(onlyDigitsAllowed);
         }
     }
     return stoi(dataString);
@@ -173,7 +345,7 @@ char getLineChar() {
             dataChar = dataString[0];
             break;
         } else {
-            cout << "Enter single character only!" << endl;
+            displayMessage(onlySingleCharacter);
             break;
         }
     }
@@ -206,30 +378,31 @@ void addNewPerson(int idLoggedUser, vector <Person>& persons) {
 
     newPersonToAdd.id = !persons.size() ? 1 : persons.back().id + 1;
 
-    cout << "Input firstname: ";
+    displayMessage(inputData, "firstname");
     newPersonToAdd.firstname = getLineString();
-    cout << "Input lastname: ";
+    displayMessage(inputData, "lastname");
     newPersonToAdd.lastname = getLineString();
     if (persons.size() > 0) {
-        fname.append(newPersonToAdd.firstname);
-        fname.append(" ");
-        fname.append(newPersonToAdd.lastname);
+
+        fname = makeFullnameString(newPersonToAdd.firstname, newPersonToAdd.lastname);
 
         if(searchTableByString(fname, DataType(fullname), persons)) {
-            cout << "The specified firstname & lastname is already in use for an existing user(s)!" << endl;
-            cout << "Do you wish to continue (Y/N)?";
+            displayMessage(dataAlreadyExist, fname);
+            displayMessage(doYouWantContinue);
+
             if(!displayYesNoChoice()) {
                 return;
             }
         }
     }
 
-    cout << "Input e-mail: ";
+    displayMessage(inputData, "e-mail");
+
     newPersonToAdd.email = getLineString();
     if (persons.size() > 0) {
         if(searchTableByString(newPersonToAdd.email, DataType(email), persons)) {
-            cout << "The specified email is already in use for an existing user(s)!" << endl;
-            cout << "Do you wish to continue (Y/N)?";
+            displayMessage(dataAlreadyExist, "email");
+            displayMessage(doYouWantContinue);
 
             if(!displayYesNoChoice()) {
                 return;
@@ -237,19 +410,20 @@ void addNewPerson(int idLoggedUser, vector <Person>& persons) {
         }
     }
 
-    cout << "Input phone number: ";
+    displayMessage(inputData, "phone number");
     newPersonToAdd.phone = clearPhoneNumber(getLineString());
     if (persons.size() > 0) {
         if(searchTableByString(newPersonToAdd.phone, DataType(phone), persons)) {
-            cout << "The specified phone number is already in use for an existing user(s)!" << endl;
-            cout << "Do you wish to continue (Y/N)?";
+            displayMessage(dataAlreadyExist, "phone");
+            displayMessage(doYouWantContinue);
+
             if(!displayYesNoChoice()) {
                 return;
             }
         }
     }
 
-    cout << "Input address: ";
+    displayMessage(inputData, "address");
     newPersonToAdd.address = getLineString();
 
     persons.push_back(newPersonToAdd);
@@ -257,13 +431,13 @@ void addNewPerson(int idLoggedUser, vector <Person>& persons) {
     dataFile.open(ADDRESSBOOK_FILE, ios::out | ios::app);
 
     if (!dataFile.good()) {
-        cout << "Error opening file: addressBook.txt!" << endl;
+        displayMessage(errorOpeningFile, ADDRESSBOOK_FILE);
         displayPausePrompt();
     }
     dataFile << makeFileString(idLoggedUser, newPersonToAdd) << endl;
     dataFile.close();
 
-    cout << "New person: " << newPersonToAdd.firstname << " " << newPersonToAdd.lastname << " added successfully to your AddressBook!" << endl;
+    displayMessage(newPersonSucessfullyAdded, fname);
     displayPausePrompt();
 }
 
@@ -276,7 +450,7 @@ void displayAllPersons(vector <Person>& persons) {
             displayRecordsByIndex(person);
         }
     } else {
-        cout << "No persons in your AddressBook!" << endl;
+        displayMessage(noPersonInAddressBook);
     }
     displayPausePrompt();
 }
@@ -292,7 +466,7 @@ void loadDataFromFile(int idLoggedUser, vector <Person>& persons) {
     dataFile.open(ADDRESSBOOK_FILE, ios::in);
 
     if (!dataFile.good()) {
-        cout << "File addressBook.txt not found, new file will be created after adding first person!" << endl;
+        displayMessage(noFileNewCreate, ADDRESSBOOK_FILE);
         displayPausePrompt();
     }
 
@@ -326,8 +500,8 @@ bool displayYesNoChoice() {
         if((yesNoChar == 'Y') || (yesNoChar == 'y') || (yesNoChar == 'n') || (yesNoChar == 'N')) {
             break;
         } else {
-            cout << "Only Y/N are allowed." << endl;
-            cout << "Do you wish to continue (Y/N)?";
+            displayMessage(onlyYNAllowed);
+            displayMessage(doYouWantContinue);
         }
     }
     ((yesNoChar == 'N') || (yesNoChar == 'n')) ? yesNoAnswer = false : yesNoAnswer = true;
@@ -376,7 +550,7 @@ void saveDataFile(int idLoggedUser, const vector <Person>& persons) {
     fstream tempBookFile("tempBook.txt", ios::out | ios::trunc);
 
     if (!addressBookFile.good()) {
-        cout << "Error opening file: addressBook.txt!" << endl;
+        displayMessage(errorOpeningFile, ADDRESSBOOK_FILE);
         displayPausePrompt();
     }
     while(getline(addressBookFile,textLine)) {
@@ -402,11 +576,11 @@ void saveDataFile(int idLoggedUser, const vector <Person>& persons) {
     addressBookFile.close();
     tempBookFile.close();
     if (remove(ADDRESSBOOK_FILE.c_str()) != 0) {
-        cout << "Error deleting AddressBook file!";
+        displayMessage(errorDeleteFile, ADDRESSBOOK_FILE);
         displayPausePrompt();
     }
     if (rename("tempBook.txt", ADDRESSBOOK_FILE.c_str()) != 0) {
-        cout << "Error renaming AddressBook file!";
+        displayMessage(errorRenameFile, ADDRESSBOOK_FILE);
         displayPausePrompt();
     }
 }
@@ -415,19 +589,19 @@ void deletePerson(int idLoggedUser, vector <Person>& persons) {
     int personId;
     bool personFound = false;
     fstream dataFile;
+    string fname ="";
 
     dataFile.open(ADDRESSBOOK_FILE, ios::in);
 
     if (!dataFile.good()) {
-
-        cout << "File addressBook.txt not found, no records to delete!" << endl;
+        displayMessage(fileNotFound, ADDRESSBOOK_FILE);
         displayPausePrompt();
 
     } else {
         dataFile.close();
 
         do {
-            cout << "Input proper person ID to delete : ";
+            displayMessage(inputPersonToDelete);
             personId = getLineInt();
         } while((personId < 1 ) || (personId > persons.back().id));
 
@@ -435,17 +609,20 @@ void deletePerson(int idLoggedUser, vector <Person>& persons) {
 
             if ((*itr).id == personId) {
                 personFound = true;
-                cout << "You are going to delete: " << (*itr).firstname << " " << (*itr).lastname << ", Do you wish to continue (Y/N) ? ";
+
+                fname = makeFullnameString((*itr).firstname, (*itr).lastname);
+                displayMessage(okToDelete, fname);
+                displayMessage(doYouWantContinue);
                 if (displayYesNoChoice()) {
                     persons.erase(itr--);
                     saveDataFile(idLoggedUser, persons);
-                    cout << "Person with ID : " << personId << " successfully deleted." << endl;
+                    displayMessage(personDeleteSuccess, to_string(personId));
                     displayPausePrompt();
                 }
             }
         }
         if (!personFound) {
-            cout << "Person with ID: " << personId << " not found in AddressBook database!" << endl;
+            displayMessage(personNotFound, to_string(personId));
             displayPausePrompt();
         }
     }
@@ -474,85 +651,90 @@ void modifyGivenPersonData(int personId, DataType personsDataType, vector <Perso
     string tempEmail;
     string tempFirstname;
     string tempLastname;
-    string tempFullname;
+    string tempFullname = "";
 
     for(Person& person : persons) {
         if (person.id == personId) {
-            cout << "You are modifing: " <<  person.firstname << " " << person.lastname << " data." << endl;
+
+            tempFullname = makeFullnameString(person.firstname, person.lastname);
+            displayMessage(modifyPersonSummary, tempFullname);
+
             if (personsDataType == DataType(firstname)) {
-                cout << "Current firstname: " << person.firstname << endl;
-                cout << "Type new firstname: ";
+                displayMessage(currentData, person.firstname, "firstname");
+                displayMessage(inputNewData, "firstname");
 
                 tempFirstname = getLineString();
-                tempFullname.append(tempFirstname);
-                tempFullname.append(" ");
-                tempFullname.append(person.lastname);
+                tempFullname = makeFullnameString(tempFirstname, person.lastname);
 
                 if(searchTableByString(tempFullname, DataType(fullname), persons)) {
-                    cout << "The specified firstname & lastname is already in use for an existing user(s)!" << endl;
-                    cout << "Do you wish to continue (Y/N)?";
+                    displayMessage(dataAlreadyExist, "firstname & lastname");
+                    displayMessage(doYouWantContinue);
                     if(!displayYesNoChoice()) {
                         return;
                     }
                 }
                 person.firstname = tempFirstname;
-                cout << "Firstname sucessfully changed to: " << person.firstname << endl;
+                displayMessage(dataSuccessfullyChanged, person.firstname, "firstname");
                 person.firstname = tempFirstname;
                 displayPausePrompt();
             } else if (personsDataType == DataType(lastname)) {
-                cout << "Current lastname: " << person.lastname << endl;
-                cout << "Type new lastname: ";
+                displayMessage(currentData, person.lastname, "lastname");
+                displayMessage(inputNewData, "lastname");
 
                 tempLastname = getLineString();
-                tempFullname.append(person.firstname);
-                tempFullname.append(" ");
-                tempFullname.append(tempLastname);
+                tempFullname = makeFullnameString(person.firstname, tempLastname);
 
                 if(searchTableByString(tempFullname, DataType(fullname), persons)) {
-                    cout << "The specified firstname & lastname is already in use for an existing user(s)!" << endl;
-                    cout << "Do you wish to continue (Y/N)?";
+                    displayMessage(dataAlreadyExist, tempFullname);
+                    displayMessage(doYouWantContinue);
+
                     if(!displayYesNoChoice()) {
                         return;
                     }
                 }
-
                 person.lastname = tempLastname;
 
-                cout << "Lastname sucessfully changed to: " << person.lastname << endl;
+                displayMessage(dataSuccessfullyChanged, person.lastname, "lastname");
                 displayPausePrompt();
             } else if (personsDataType == DataType(phone)) {
-                cout << "Current phone No.: " << person.phone << endl;
-                cout << "Type new phone No.: ";
+                displayMessage(currentData, person.phone, "phone");
+                displayMessage(inputNewData, "phone");
                 tempPhone = clearPhoneNumber(getLineString());
+
                 if(searchTableByString(tempPhone, DataType(phone), persons)) {
-                    cout << "The specified phone number is already in use for an existing user(s)!" << endl;
-                    cout << "Do you wish to continue (Y/N)?";
+                    displayMessage(dataAlreadyExist, "phone number");
+                    displayMessage(doYouWantContinue);
+
                     if(!displayYesNoChoice()) {
                         return;
                     }
                 }
                 person.phone = tempPhone;
-                cout << "Phone No. sucessfully changed to: " << person.phone << endl;
+                displayMessage(dataSuccessfullyChanged, person.phone, "Phone number");
                 displayPausePrompt();
             } else if (personsDataType == DataType(email)) {
-                cout << "Current e-mail: " << person.email << endl;
-                cout << "Type new e-mail: ";
+                displayMessage(currentData, person.phone, "e-mail");
+                displayMessage(inputNewData, "e-mail");
+
                 tempEmail = getLineString();
                 if(searchTableByString(tempEmail, DataType(email), persons)) {
-                    cout << "The specified email is already in use for an existing user(s)!" << endl;
-                    cout << "Do you wish to continue (Y/N)?";
+                    displayMessage(dataAlreadyExist, "e-mail");
+                    displayMessage(doYouWantContinue);
+
                     if(!displayYesNoChoice()) {
                         return;
                     }
                 }
                 person.email = tempEmail;
-                cout << "e-mail sucessfully changed to: " << person.email << endl;
+                displayMessage(dataSuccessfullyChanged, person.phone, "e-mail");
                 displayPausePrompt();
             } else if (personsDataType == DataType(address)) {
-                cout << "Current address: " << person.address << endl;
-                cout << "Type new address: ";
+                displayMessage(currentData, person.phone, "address");
+                displayMessage(inputNewData, "address");
+
                 person.address = getLineString();
-                cout << "Address sucessfully changed to: " << person.address << endl;
+                displayMessage(dataSuccessfullyChanged, person.phone, "Address");
+
                 displayPausePrompt();
             }
         }
@@ -569,14 +751,14 @@ void modifyPerson(int idLoggedUser, vector <Person>& persons) {
 
     if (!dataFile.good()) {
 
-        cout << "File addressBook.txt not found, no records to modify!" << endl;
+        displayMessage(fileNotFound, ADDRESSBOOK_FILE);
         displayPausePrompt();
 
     } else {
         dataFile.close();
 
         do {
-            cout << "Input proper person ID to modify : ";
+            displayMessage(inputPersonToModify);
             personId = getLineInt();
         } while((personId < 1 ) || (personId > persons.back().id));
 
@@ -611,7 +793,7 @@ void modifyPerson(int idLoggedUser, vector <Person>& persons) {
                         saveDataFile(idLoggedUser, persons);
                         return;
                     default:
-                        cout << "Only 1, 2, 3, 4, 5, 6 and 9 are allowed." << endl;
+                        displayMessage(onlyNumbers16Allowed);
                         displayPausePrompt();
                     }
                 }
@@ -619,16 +801,29 @@ void modifyPerson(int idLoggedUser, vector <Person>& persons) {
         }
 
         if (!personFound) {
-            cout << "Person with ID: " << personId << " not found in AddressBook database!" << endl;
+            displayMessage(personNotFound, to_string(personId));
             displayPausePrompt();
         }
     }
 }
 
+void searchVectorByString(string dataTypeToSearch, vector <Person>& persons) {
+
+    string stringToSearch;
+
+    displayMessage(inputData, dataTypeToSearch);
+    stringToSearch = getLineString();
+
+    if (!searchTableByString(stringToSearch, DataType(firstname), persons)) {
+        displayMessage(noEnteredPersonInAddressBook);
+    }
+    displayPausePrompt();
+}
+
+
 int manageMainMenu(int idLoggedUser, vector <Person>& persons, vector <User>& users) {
 
     char menuSelection;
-    string stringToSearch;
 
     while (true) {
 
@@ -639,22 +834,10 @@ int manageMainMenu(int idLoggedUser, vector <Person>& persons, vector <User>& us
             addNewPerson(idLoggedUser, persons);
             break;
         case '2':
-            cout << "Input firstname: ";
-            stringToSearch = getLineString();
-
-            if (!searchTableByString(stringToSearch, DataType(firstname), persons)) {
-                cout << "No such person in your AddressBook!" << endl;
-            }
-            displayPausePrompt();
+            searchVectorByString("firstname", persons);
             break;
         case '3':
-            cout << "Input lastname: ";
-            stringToSearch = getLineString();
-
-            if (!searchTableByString(stringToSearch, DataType(lastname), persons)) {
-                cout << "No such person in your AddressBook!" << endl;
-            }
-            displayPausePrompt();
+            searchVectorByString("lastname", persons);
             break;
         case '4':
             displayAllPersons(persons);
@@ -675,7 +858,7 @@ int manageMainMenu(int idLoggedUser, vector <Person>& persons, vector <User>& us
         case '0':
             system("cls");
         default:
-            cout << "Only 1, 2, 3, 4, 5, 6, 7 and 9 are allowed." << endl;
+            displayMessage(onlyNumbers17Allowed);
             displayPausePrompt();
         }
     }
@@ -684,27 +867,27 @@ int manageMainMenu(int idLoggedUser, vector <Person>& persons, vector <User>& us
 int loginUser(vector <User>& users) {
 
     string userName, userPassword;
-    cout << "Input login: ";
+    displayMessage(inputData, "login");
     userName = getLineString();
 
     for(User& user : users) {
         if (user.username == userName) {
 
             for (int loginAttempts = 0; loginAttempts < 3; ++loginAttempts) {
-                cout << "Enter password. Attempts left: " << 3 - loginAttempts << ": ";
+                displayMessage(enterPassword, to_string(3 - loginAttempts));
                 userPassword = getLineString();
                 if (user.password == userPassword) {
-                    cout << "You are logged in." << endl;
+                    displayMessage(userLoggedIn);
                     Sleep(1000);
                     return user.id;
                 }
             }
-            cout << "You have entered incorrect password 3 times. Wait 3 seconds before next attempt." << endl;
+            displayMessage(incorrectPassword3Times);
             Sleep(3000);
             return 0;
         }
     }
-    cout << "No user with entered login" << endl;
+    displayMessage(noUserFound);
     Sleep(1500);
     return 0;
 }
@@ -715,7 +898,7 @@ bool checkIfUserNameExist(string userName, vector <User>& users) {
 
     for(User& user : users) {
         if (user.username == userName) {
-            cout << "User name already exist. Enter different user name." << endl;
+            displayMessage(userNameExist);
             userFound = true;
         }
     }
@@ -727,7 +910,7 @@ bool checkIfUserDataEmpty(string userData) {
     bool userDataEmpty = false;
 
     if (userData == "") {
-        cout << "Empty field is not allowed. You have to enter proper data." << endl;
+        displayMessage(emptyUserNotAllowed);
         userDataEmpty = true;
     }
     return userDataEmpty;
@@ -739,12 +922,12 @@ void registerUser(vector <User>& users) {
     User newUserToAdd;
 
     do {
-        cout << "Enter user name: ";
+        displayMessage(inputData, "user name");
         userName = getLineString();
     } while(checkIfUserNameExist(userName, users) || checkIfUserDataEmpty(userName));
 
     do {
-        cout << "Enter password: ";
+        displayMessage(inputData, "password");
         userPassword = getLineString();
     } while(checkIfUserDataEmpty(userPassword));
 
@@ -753,20 +936,20 @@ void registerUser(vector <User>& users) {
     newUserToAdd.password = userPassword;
     users.push_back(newUserToAdd);
 
-    cout << "User account successfully registered." << endl;
+    displayMessage(userSuccessfullyRegistered);
     Sleep (1000);
 }
 
 void changeUserPassword(int idLoggedUser, vector <User>& users) {
 
     string userPassword;
-    cout << "Enter password: ";
+    displayMessage(inputData, "password");
     userPassword = getLineString();
 
     for(User& user : users) {
         if(user.id == idLoggedUser) {
             user.password = userPassword;
-            cout << "Password successfully changed." << endl;
+            displayMessage(passSuccessfullyChanged);
             Sleep(1500);
         }
     }
@@ -781,7 +964,7 @@ void loadUsersFromFile(vector <User>& users) {
     dataFile.open(USERS_FILE, ios::in);
 
     if (!dataFile.good()) {
-        cout << "File users.txt not found, new file will be created after adding first person!" << endl;
+        displayMessage(noFileNewCreate, USERS_FILE);
         displayPausePrompt();
     }
     while(getline(dataFile,textLine)) {
@@ -815,7 +998,7 @@ void saveUsersFile(const vector <User>& users) {
     ofstream usersFile(USERS_FILE, ios::out | ios::trunc);
 
     if (!usersFile.good()) {
-        cout << "Error opening file: users.txt!" << endl;
+        displayMessage(fileNotFound, USERS_FILE);
         displayPausePrompt();
     }
     for (User user : users) {
