@@ -932,6 +932,7 @@ int manageMainMenu(int idLoggedUser, vector <Person>& persons, vector <User>& us
 int loginUser(vector <User>& users) {
 
     string userName, userPassword;
+
     displayMessage(inputData, "login");
     userName = getLineString();
 
@@ -941,9 +942,7 @@ int loginUser(vector <User>& users) {
             for (int loginAttempts = 0; loginAttempts < 3; ++loginAttempts) {
                 displayMessage(enterPassword, to_string(3 - loginAttempts));
                 userPassword = getLineString();
-                //if (user.username == userName) {
                 if (user.password == userPassword) {
-                //if (user.password == userPassword && user.username == userName) {
                     displayMessage(userLoggedIn);
                     Sleep(1000);
                     return user.id;
