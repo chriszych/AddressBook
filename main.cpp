@@ -74,25 +74,34 @@ const string USERS_FILE = "users.txt";
 void displayMessage(MessageType displayMessageType);
 void displayMessage(MessageType displayMessageType, string dataToDisplay);
 void displayMessage(MessageType displayMessageType, string dataToDisplay, string additionalData);
-string makeFullnameString(string firstname, string lastname);
 void displayPausePrompt();
 void displayRecordsByIndex(const Person person);
-bool searchTableByString(string stringToSearch, DataType personsDataType, vector <Person>& persons);
+string makeFullnameString(string firstname, string lastname);
+string makeFileString(int idLoggedUser, const Person& persons);
+string clearPhoneNumber(string stringToClear);
+string makeUserString(const User& users);
 string getLineString();
+bool checkIfDataAlreadyExist(string stringToSearch, DataType personsDataType, vector <Person>& persons);
+bool checkNewPersonData(string personData, DataType personsDataType, vector <Person>& persons);
+bool isNumber(string textNumber);
+bool displayYesNoChoice();
 char getLineChar();
-bool isNumber(string s);
 int getLineInt();
 char displayMainMenu();
-string makeFileString(int idLoggedUser, const Person& persons);
+char displayEditSubMenu();
 void addNewPerson(vector <Person>& persons);
 void displayAllPersons(vector <Person>& persons);
 void loadDataFromFile(int idLoggedUser, vector <Person>& persons);
-bool displayYesNoChoice();
-string clearPhoneNumber(string stringToClear);
 void saveDataFile(int idLoggedUser, const vector <Person>& persons);
 void deletePerson(int idLoggedUser, vector <Person>& persons);
-char displayEditSubMenu();
+void modifyFirstname(Person& person);
+void modifyLastname(Person& person);
+void modifyPhone(Person& person);
+void modifyEmail(Person& person);
+void modifyAddress(Person& person);
+void modifyGivenPersonData(int personId, DataType personsDataType, vector <Person>& persons);
 void modifyPerson(int idLoggedUser, vector <Person>& persons);
+void searchVectorByString(string dataTypeToSearch, DataType personsDataType, vector <Person>& persons);
 int manageMainMenu(int idLoggedUser, vector <Person>& persons, vector <User>& users);
 int loginUser(vector <User>& users);
 bool checkIfUserNameExist(string userName, vector <User>& users);
@@ -156,7 +165,7 @@ void displayMessage(MessageType displayMessageType) {
         cout << "Only 1, 2, 3, 4, 5, 6, 7 and 9 are allowed." << endl;
         break;
     case userLoggedIn:
-        cout << "You are logged in." << endl;
+        cout << "You are successfully logged in." << endl;
         break;
     case incorrectPassword3Times:
         cout << "You have entered incorrect password 3 times. Wait 3 seconds before next attempt." << endl;
@@ -255,43 +264,46 @@ string makeFullnameString(string firstname, string lastname) {
     return fname;
 }
 
-bool searchTableByString(string stringToSearch, DataType personsDataType, vector <Person>& persons) {
+bool checkIfDataAlreadyExist(string stringToSearch, DataType personsDataType, Person person) {
+
     bool searchResult = false;
+    string fname = "";
 
-    for(Person person : persons) {
-        if (personsDataType == DataType(firstname)) {
-            if (person.firstname.find(stringToSearch) != string::npos) {
-                displayRecordsByIndex(person);
-                searchResult = true;
-            }
-        } else if (personsDataType == DataType(lastname)) {
-            if (person.lastname.find(stringToSearch) != string::npos) {
-                displayRecordsByIndex(person);
-                searchResult = true;
-            }
-        } else if (personsDataType == DataType(email)) {
-            if (person.email == stringToSearch) {
-                displayRecordsByIndex(person);
-                searchResult = true;
-            }
-        } else if (personsDataType == DataType(phone)) {
-            if (person.phone == stringToSearch) {
-                displayRecordsByIndex(person);
-                searchResult = true;
-            }
-
-        } else if (personsDataType == DataType(fullname)) {
-
-            string fname = "";
-            fname = makeFullnameString(person.firstname, person.lastname);
-
-            if (fname == stringToSearch) {
-                displayRecordsByIndex(person);
-                searchResult = true;
-            }
+    switch (personsDataType) {
+    case firstname:
+        if (person.firstname.find(stringToSearch) != string::npos) {
+            displayRecordsByIndex(person);
+            searchResult = true;
         }
+        break;
+    case lastname:
+        if (person.lastname.find(stringToSearch) != string::npos) {
+            displayRecordsByIndex(person);
+            searchResult = true;
+        }
+        break;
+    case email:
+        if (person.email == stringToSearch) {
+            displayRecordsByIndex(person);
+            searchResult = true;
+        }
+        break;
+    case phone:
+        if (person.phone == stringToSearch) {
+            displayRecordsByIndex(person);
+            searchResult = true;
+        }
+        break;
+    case fullname:
+        fname = makeFullnameString(person.firstname, person.lastname);
+        if (fname == stringToSearch) {
+            displayRecordsByIndex(person);
+            searchResult = true;
+        }
+        break;
+    default:
+        break;
     }
-
     return searchResult;
 }
 
@@ -371,6 +383,21 @@ char displayMainMenu() {
     return getLineChar();
 }
 
+bool checkNewPersonData(string personData, DataType personsDataType, vector <Person>& persons) {
+
+    for(Person person : persons) {
+        if(checkIfDataAlreadyExist(personData, personsDataType, person)) {
+            displayMessage(dataAlreadyExist, personData);
+            displayMessage(doYouWantContinue);
+
+            if(!displayYesNoChoice()) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 void addNewPerson(int idLoggedUser, vector <Person>& persons) {
     ofstream dataFile;
     Person newPersonToAdd;
@@ -382,44 +409,30 @@ void addNewPerson(int idLoggedUser, vector <Person>& persons) {
     newPersonToAdd.firstname = getLineString();
     displayMessage(inputData, "lastname");
     newPersonToAdd.lastname = getLineString();
+
     if (persons.size() > 0) {
 
         fname = makeFullnameString(newPersonToAdd.firstname, newPersonToAdd.lastname);
-
-        if(searchTableByString(fname, DataType(fullname), persons)) {
-            displayMessage(dataAlreadyExist, fname);
-            displayMessage(doYouWantContinue);
-
-            if(!displayYesNoChoice()) {
-                return;
-            }
+        if(checkNewPersonData(fname, fullname, persons)) {
+            return;
         }
     }
 
     displayMessage(inputData, "e-mail");
-
     newPersonToAdd.email = getLineString();
-    if (persons.size() > 0) {
-        if(searchTableByString(newPersonToAdd.email, DataType(email), persons)) {
-            displayMessage(dataAlreadyExist, "email");
-            displayMessage(doYouWantContinue);
 
-            if(!displayYesNoChoice()) {
-                return;
-            }
+    if (persons.size() > 0) {
+        if(checkNewPersonData(newPersonToAdd.email, email, persons)) {
+            return;
         }
     }
 
     displayMessage(inputData, "phone number");
     newPersonToAdd.phone = clearPhoneNumber(getLineString());
-    if (persons.size() > 0) {
-        if(searchTableByString(newPersonToAdd.phone, DataType(phone), persons)) {
-            displayMessage(dataAlreadyExist, "phone");
-            displayMessage(doYouWantContinue);
 
-            if(!displayYesNoChoice()) {
-                return;
-            }
+    if (persons.size() > 0) {
+        if(checkNewPersonData(newPersonToAdd.phone, phone, persons)) {
+            return;
         }
     }
 
@@ -646,11 +659,113 @@ char displayEditSubMenu() {
     return getLineChar();
 }
 
-void modifyGivenPersonData(int personId, DataType personsDataType, vector <Person>& persons) {
-    string tempPhone;
-    string tempEmail;
+
+void modifyFirstname(Person& person) {
+
     string tempFirstname;
+    string tempFullname;
+
+    displayMessage(currentData, person.firstname, "firstname");
+    displayMessage(inputNewData, "firstname");
+
+    tempFirstname = getLineString();
+    tempFullname = makeFullnameString(tempFirstname, person.lastname);
+
+    if(checkIfDataAlreadyExist(tempFullname, DataType(fullname), person)) {
+        displayMessage(dataAlreadyExist, "firstname & lastname");
+        displayMessage(doYouWantContinue);
+        if(!displayYesNoChoice()) {
+            return;
+        }
+    }
+    person.firstname = tempFirstname;
+    displayMessage(dataSuccessfullyChanged, person.firstname, "firstname");
+    displayPausePrompt();
+
+}
+
+void modifyLastname(Person& person) {
+
     string tempLastname;
+    string tempFullname;
+
+    displayMessage(currentData, person.lastname, "lastname");
+    displayMessage(inputNewData, "lastname");
+
+    tempLastname = getLineString();
+    tempFullname = makeFullnameString(person.firstname, tempLastname);
+
+    if(checkIfDataAlreadyExist(tempFullname, DataType(fullname), person)) {
+        displayMessage(dataAlreadyExist, tempFullname);
+        displayMessage(doYouWantContinue);
+
+        if(!displayYesNoChoice()) {
+            return;
+        }
+    }
+    person.lastname = tempLastname;
+
+    displayMessage(dataSuccessfullyChanged, person.lastname, "lastname");
+    displayPausePrompt();
+
+}
+
+void modifyPhone(Person& person) {
+
+    string tempPhone;
+
+    displayMessage(currentData, person.phone, "phone");
+    displayMessage(inputNewData, "phone");
+    tempPhone = clearPhoneNumber(getLineString());
+
+    if(checkIfDataAlreadyExist(tempPhone, DataType(phone), person)) {
+        displayMessage(dataAlreadyExist, "phone number");
+        displayMessage(doYouWantContinue);
+
+        if(!displayYesNoChoice()) {
+            return;
+        }
+    }
+    person.phone = tempPhone;
+    displayMessage(dataSuccessfullyChanged, person.phone, "Phone number");
+    displayPausePrompt();
+}
+
+void modifyEmail(Person& person) {
+
+    string tempEmail;
+
+    displayMessage(currentData, person.phone, "e-mail");
+    displayMessage(inputNewData, "e-mail");
+
+    tempEmail = getLineString();
+    if(checkIfDataAlreadyExist(tempEmail, DataType(email), person)) {
+        displayMessage(dataAlreadyExist, "e-mail");
+        displayMessage(doYouWantContinue);
+
+        if(!displayYesNoChoice()) {
+            return;
+        }
+    }
+    person.email = tempEmail;
+    displayMessage(dataSuccessfullyChanged, person.email, "e-mail");
+    displayPausePrompt();
+}
+
+void modifyAddress(Person& person) {
+
+    displayMessage(currentData, person.address, "address");
+    displayMessage(inputNewData, "address");
+
+    person.address = getLineString();
+    displayMessage(dataSuccessfullyChanged, person.address, "Address");
+
+    displayPausePrompt();
+
+}
+
+void modifyGivenPersonData(int personId, DataType personsDataType, vector <Person>& persons) {
+
     string tempFullname = "";
 
     for(Person& person : persons) {
@@ -659,83 +774,25 @@ void modifyGivenPersonData(int personId, DataType personsDataType, vector <Perso
             tempFullname = makeFullnameString(person.firstname, person.lastname);
             displayMessage(modifyPersonSummary, tempFullname);
 
-            if (personsDataType == DataType(firstname)) {
-                displayMessage(currentData, person.firstname, "firstname");
-                displayMessage(inputNewData, "firstname");
+            switch (personsDataType) {
+            case firstname:
+                modifyFirstname(person);
+                break;
+            case lastname:
+                modifyLastname(person);
+                break;
+            case phone:
+                modifyPhone(person);
+                break;
+            case email:
+                modifyEmail(person);
+                break;
+            case address:
+                modifyAddress(person);
+                break;
+            default:
+                break;
 
-                tempFirstname = getLineString();
-                tempFullname = makeFullnameString(tempFirstname, person.lastname);
-
-                if(searchTableByString(tempFullname, DataType(fullname), persons)) {
-                    displayMessage(dataAlreadyExist, "firstname & lastname");
-                    displayMessage(doYouWantContinue);
-                    if(!displayYesNoChoice()) {
-                        return;
-                    }
-                }
-                person.firstname = tempFirstname;
-                displayMessage(dataSuccessfullyChanged, person.firstname, "firstname");
-                person.firstname = tempFirstname;
-                displayPausePrompt();
-            } else if (personsDataType == DataType(lastname)) {
-                displayMessage(currentData, person.lastname, "lastname");
-                displayMessage(inputNewData, "lastname");
-
-                tempLastname = getLineString();
-                tempFullname = makeFullnameString(person.firstname, tempLastname);
-
-                if(searchTableByString(tempFullname, DataType(fullname), persons)) {
-                    displayMessage(dataAlreadyExist, tempFullname);
-                    displayMessage(doYouWantContinue);
-
-                    if(!displayYesNoChoice()) {
-                        return;
-                    }
-                }
-                person.lastname = tempLastname;
-
-                displayMessage(dataSuccessfullyChanged, person.lastname, "lastname");
-                displayPausePrompt();
-            } else if (personsDataType == DataType(phone)) {
-                displayMessage(currentData, person.phone, "phone");
-                displayMessage(inputNewData, "phone");
-                tempPhone = clearPhoneNumber(getLineString());
-
-                if(searchTableByString(tempPhone, DataType(phone), persons)) {
-                    displayMessage(dataAlreadyExist, "phone number");
-                    displayMessage(doYouWantContinue);
-
-                    if(!displayYesNoChoice()) {
-                        return;
-                    }
-                }
-                person.phone = tempPhone;
-                displayMessage(dataSuccessfullyChanged, person.phone, "Phone number");
-                displayPausePrompt();
-            } else if (personsDataType == DataType(email)) {
-                displayMessage(currentData, person.phone, "e-mail");
-                displayMessage(inputNewData, "e-mail");
-
-                tempEmail = getLineString();
-                if(searchTableByString(tempEmail, DataType(email), persons)) {
-                    displayMessage(dataAlreadyExist, "e-mail");
-                    displayMessage(doYouWantContinue);
-
-                    if(!displayYesNoChoice()) {
-                        return;
-                    }
-                }
-                person.email = tempEmail;
-                displayMessage(dataSuccessfullyChanged, person.phone, "e-mail");
-                displayPausePrompt();
-            } else if (personsDataType == DataType(address)) {
-                displayMessage(currentData, person.phone, "address");
-                displayMessage(inputNewData, "address");
-
-                person.address = getLineString();
-                displayMessage(dataSuccessfullyChanged, person.phone, "Address");
-
-                displayPausePrompt();
             }
         }
     }
@@ -807,14 +864,22 @@ void modifyPerson(int idLoggedUser, vector <Person>& persons) {
     }
 }
 
-void searchVectorByString(string dataTypeToSearch, vector <Person>& persons) {
+void searchVectorByString(string dataTypeToSearch, DataType personsDataType, vector <Person>& persons) {
 
     string stringToSearch;
+    bool personFound = false;
 
     displayMessage(inputData, dataTypeToSearch);
     stringToSearch = getLineString();
 
-    if (!searchTableByString(stringToSearch, DataType(firstname), persons)) {
+    for(Person person : persons) {
+
+
+        if (checkIfDataAlreadyExist(stringToSearch, personsDataType, person)) {
+            personFound = true;
+        }
+    }
+    if(!personFound) {
         displayMessage(noEnteredPersonInAddressBook);
     }
     displayPausePrompt();
@@ -834,10 +899,10 @@ int manageMainMenu(int idLoggedUser, vector <Person>& persons, vector <User>& us
             addNewPerson(idLoggedUser, persons);
             break;
         case '2':
-            searchVectorByString("firstname", persons);
+            searchVectorByString("firstname", firstname, persons);
             break;
         case '3':
-            searchVectorByString("lastname", persons);
+            searchVectorByString("lastname", lastname, persons);
             break;
         case '4':
             displayAllPersons(persons);
@@ -876,7 +941,9 @@ int loginUser(vector <User>& users) {
             for (int loginAttempts = 0; loginAttempts < 3; ++loginAttempts) {
                 displayMessage(enterPassword, to_string(3 - loginAttempts));
                 userPassword = getLineString();
+                //if (user.username == userName) {
                 if (user.password == userPassword) {
+                //if (user.password == userPassword && user.username == userName) {
                     displayMessage(userLoggedIn);
                     Sleep(1000);
                     return user.id;
@@ -888,7 +955,7 @@ int loginUser(vector <User>& users) {
         }
     }
     displayMessage(noUserFound);
-    Sleep(1500);
+    displayPausePrompt();
     return 0;
 }
 
@@ -950,7 +1017,7 @@ void changeUserPassword(int idLoggedUser, vector <User>& users) {
         if(user.id == idLoggedUser) {
             user.password = userPassword;
             displayMessage(passSuccessfullyChanged);
-            Sleep(1500);
+            displayPausePrompt();
         }
     }
 }
